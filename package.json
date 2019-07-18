@@ -5,7 +5,7 @@
   "main": "/src/index.js",
   "scripts": {
     "start": "webpack-dev-server --open --config webpack.dev.js",
-    "test":  "npm run-script build && node ./dist/test.js",
+    "test": "npm run-script build && node ./dist/test.js",
     "build": "webpack --config webpack.prod.js"
   },
   "repository": {

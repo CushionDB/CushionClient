@@ -1,16 +1,53 @@
 class Store {
-	constructor({ localDBName, username, remoteBaseURL }) {
+	constructor(localDBName, username, remoteBaseURL) {
 		if (typeof localDBName !== 'string' || localDBName.length === 0) {
 			throw new Error('Database name must be a valid non-empty string.');
 		}
 
+		this.listeners = [];
+
 		this.localDBName = localDBName;
 		this.localDB = new PouchDB(localDBName);
 
-		if (remoteBaseURL) {
-			this.remoteDBAddress = `${remoteBaseURL}/${username}`;
-			this.remoteDB = new PouchDB(this.remoteDBAddress);
+		if (remoteBaseURL && username) {
+			this.connectRemote(remoteBaseURL, username);
 		}
+
+		this.bindToLocalChange(this.notifyListeners);
+	}
+
+	connectRemote(remoteBaseURL, username) {
+		this.remoteDBAddress = `${remoteBaseURL}/${username}`;
+		this.remoteDB = new PouchDB(this.remoteDBAddress);
+		this.bindToLocalChange(this.replicateToServer);
+	}
+
+	disconnectRemote() {
+		this.remoteDBAddress = null;
+		this.remoteDB = null;
+	}
+
+	notifyListeners() {
+		this.listeners.forEach(l => l());
+	}
+
+	bindToLocalChange(cb) {
+		this.localDB.changes({
+			live: true,
+			since: 'now'
+		}).on('change', cb);
+	}
+
+	subscribe(listener) {
+		this.listeners = [...this.listeners, listener];
+
+		return () => {
+			this.listeners = this.listeners.filter(l => l !== listener);
+		}
+	}
+
+	replicateToServer() {
+		PouchDB.replicate(this.localDBName, this.remoteDBAddress);
 	}
 
 	set(document) {
