@@ -8,7 +8,6 @@
 
 <body>
   Hello
-  <script src="/assets/main.js"></script>
-  <!-- <script src="/dist/main.js"></script> -->
+  <script src="./dist/main.js"></script>
 </body>
 </html>

@@ -1,13 +1,21 @@
-import Store from './store';
+import Cushion from './cushion';
+// import './cushion';
 
-class Cushion {
-	constructor({ localDBName, username, remoteBaseURL }) {
-		this.store = new Store(localDBName, username, remoteBaseURL);
-	}
+window.a = 123;
 
-};
+let st = new Cushion();
+if (st) console.log('defined');
 
-console.log('index.js is loaded');
+class Person {
+  constructor(name){
+    this.name = name;
+  }
+  getName(){
+    return this.name;
+  }
+}
 
-
-export default Cushion;
+let p = new Person('bla');
+console.log(p.getName());
+if (Cushion) console.log('cushion imported');
+console.log(a);
