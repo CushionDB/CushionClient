@@ -23,32 +23,36 @@ class Account {
     this.request(url, options);
   }
 
-
-
   signIn({ username, password }) {
+    // send request to couch for cookie
+      // need to change preferences for persistent cookie
+    // get a cookie back, stored on the browser
     if (!username || !password) {
       throw new Error('username and password are required.');
     }
 
-    let url = 'http://localhost:3001/api/signin'
+    let url = `http://127.0.0.1:5984/_session`
     let options = {
       method: 'POST',
+      credentials: 'include',
+      mode: 'cors',
       data: {
         name: username,
         password: password
       },
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/json"
+        Accept: "application/json",
+        Authorization: 'Basic '+btoa(`${username}:${password}`)
       },
     };
 
     this.request(url, options);
-    // Add session info to localStorage
+    // Do something with session info or cookie
   }
 
   signOut() {
-    // Remove session info from localStorage
+    // Remove session info or cookie
   }
 
   get({ username, password }) {
@@ -107,6 +111,7 @@ class Account {
     fetch(url, {
       method: options.method,
       body: JSON.stringify(options.data),
+      credentials: options.credentials,
       headers: options.headers,
     }).then(response => {
       console.log('[RESPONSE] ', response);
