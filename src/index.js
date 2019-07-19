@@ -7,4 +7,7 @@ class Cushion {
 
 };
 
+console.log('index.js is loaded');
+
+
 export default Cushion;
