@@ -10,28 +10,27 @@ class Account {
       throw new Error('username and password are required.');
     }
 
-    let url = 'http://localhost:8080/api/signup'
+    let url = `http://localhost:3001/signup`
     let options = {
       method: 'POST',
-      data: {
-        name: accountInfo.username,
-        password: accountInfo.password
-      },
+      data: accountInfo,
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/json"
+        "Accept": "application/json",
       },
     };
 
-    request(url, options);
+    this.request(url, options);
   }
+
+
 
   signIn({ username, password }) {
     if (!username || !password) {
       throw new Error('username and password are required.');
     }
 
-    let url = 'http://localhost:8080/api/signin'
+    let url = 'http://localhost:3001/api/signin'
     let options = {
       method: 'POST',
       data: {
@@ -44,7 +43,7 @@ class Account {
       },
     };
 
-    request(url, options);
+    this.request(url, options);
     // Add session info to localStorage
   }
 
@@ -70,7 +69,7 @@ class Account {
       },
     };
 
-    request(url, options);
+    this.request(url, options);
   }
 
   update(accountInfo) {
@@ -84,7 +83,7 @@ class Account {
       },
     };
 
-    request(url, options);
+    this.request(url, options);
   }
 
   destroy({ username, password }) {
@@ -108,12 +107,11 @@ class Account {
     fetch(url, {
       method: options.method,
       body: JSON.stringify(options.data),
-      mode: 'cors',
       headers: options.headers,
     }).then(response => {
-      console.log(response);
+      console.log('[RESPONSE] ', response);
     }).catch(error => {
-      console.log(error);
+      console.log('[ERROR] ', error);
     });
   }
 }
