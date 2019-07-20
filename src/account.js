@@ -24,9 +24,6 @@ class Account {
   }
 
   signIn({ username, password }) {
-    // send request to couch for cookie
-      // need to change preferences for persistent cookie
-    // get a cookie back, stored on the browser
     if (!username || !password) {
       throw new Error('username and password are required.');
     }
