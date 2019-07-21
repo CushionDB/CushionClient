@@ -1,8 +1,12 @@
-
 class Account {
   constructor({ remoteBaseURL }) {
     this.remoteBaseURL = remoteBaseURL;
     this.usersDbUrl = remoteBaseURL + '_users';
+
+  }
+
+  isSignedIn(){
+    return localStorage.getItem('signedIn') === 'true';
   }
 
   signUp(accountInfo) {
@@ -28,11 +32,13 @@ class Account {
       throw new Error('username and password are required.');
     }
 
-    let url = `http://127.0.0.1:5984/_session`
+    // let url = `http://127.0.0.1:5984/_session`
+    let url = `http://localhost:3001/signin`
+
     let options = {
       method: 'POST',
-      credentials: 'include',
-      mode: 'cors',
+      // credentials: 'include',
+      // mode: 'cors',
       data: {
         name: username,
         password: password
@@ -40,15 +46,20 @@ class Account {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        Authorization: 'Basic '+btoa(`${username}:${password}`)
+        // Authorization: 'Basic '+btoa(`${username}:${password}`)
       },
     };
 
-    this.request(url, options);
+    this.request(url, options).then( response => {
+      console.log(response);
+    } )
+
+    // if(this.isSignedIn()) console.log('signed in true');
     // Do something with session info or cookie
   }
 
   signOut() {
+
     // Remove session info or cookie
   }
 
@@ -105,13 +116,15 @@ class Account {
   }
 
   request(url, options) {
-    fetch(url, {
+    return fetch(url, {
       method: options.method,
       body: JSON.stringify(options.data),
       credentials: options.credentials,
       headers: options.headers,
     }).then(response => {
       console.log('[RESPONSE] ', response);
+      return response;
+      // return response.status ;
     }).catch(error => {
       console.log('[ERROR] ', error);
     });
