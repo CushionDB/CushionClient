@@ -28,6 +28,8 @@
     "webpack-dev-server": "^3.7.2"
   },
   "dependencies": {
-    "pouchdb": "^7.1.1"
+    "pouchdb": "^7.1.1",
+    "pouchdb-authentication": "^1.1.3",
+    "utf-8": "^2.0.0"
   }
 }

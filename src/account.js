@@ -1,8 +1,11 @@
 class Account {
-  constructor({ remoteBaseURL }) {
-    this.remoteBaseURL = remoteBaseURL;
-    this.usersDbUrl = remoteBaseURL + '_users';
+  constructor(handleConnectRemoteDB) {
+    this.remoteDB = null;
+    this.onConnectRemoteDB = handleConnectRemoteDB;
+  }
 
+  addRemoteDB(remoteDB) {
+    this.remoteDB = remoteDB;
   }
 
   isSignedIn(){
@@ -11,50 +14,64 @@ class Account {
     return (!!authorization);
   }
 
-  signUp(accountInfo) {
-    if (!accountInfo.username || !accountInfo.password) {
-      throw new Error('username and password are required.');
-    }
-
-    let url = `http://localhost:3001/signup`
-    let options = {
-      method: 'POST',
-      data: accountInfo,
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
-    };
-
-    this.request(url, options);
-  }
-
-  signIn({ username, password }) {
+  signUp({ username, password }) {
     if (!username || !password) {
       throw new Error('username and password are required.');
     }
 
-    let url = `http://localhost:3001/signin`
-
-    let options = {
+    return fetch('http://localhost:3001/signup', {
       method: 'POST',
-      data: {
-        name: username,
-        password: password
-      },
+      body: JSON.stringify({username, password}),
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    };
+        "Accept": "application/json",
+      }
+    }).then(response => {
+      console.log('[RESPONSE] ', response);
 
-    this.request(url, options)
-      .then(response => response.json())
-      .then( response => {
-        if (response.token){
-          localStorage.setItem('auth',JSON.stringify(response));
-        }
-      } )
+      this.onConnectRemoteDB(username, password);
+      return response;
+    }).catch(error => {
+      console.log('[ERROR] ', error);
+    });
+  }
+
+
+  // signUp(username, password) {
+  //   return this.remoteDB.signUp(username, password)
+
+  //     .then(res => {
+  //       console.log(res);
+  //     })
+
+  //     .catch(err => {
+  //       console.log(err);
+  //     })
+
+
+    // if (!accountInfo.username || !accountInfo.password) {
+    //   throw new Error('username and password are required.');
+    // }
+
+    // let url = `http://localhost:3001/signup`
+    // let options = {
+    //   method: 'POST',
+    //   data: accountInfo,
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //     "Accept": "application/json",
+    //   },
+    // };
+
+    // this.request(url, options);
+  // }
+
+  signInAttempt({ username, password }) {
+    this.onConnectRemoteDB(username, password);
+
+    // if (!username || !password) {
+    //   throw new Error('username and password are required.');
+    // }
 
     // if(this.isSignedIn()) console.log('signed in true');
     // Do something with session info or cookie
