@@ -6,7 +6,9 @@ class Account {
   }
 
   isSignedIn(){
-    return localStorage.getItem('signedIn') === 'true';
+    // return localStorage.getItem('signedIn') === 'true';
+    let authorization = JSON.parse(localStorage.getItem('auth'));
+    return (!!authorization);
   }
 
   signUp(accountInfo) {
@@ -32,13 +34,10 @@ class Account {
       throw new Error('username and password are required.');
     }
 
-    // let url = `http://127.0.0.1:5984/_session`
     let url = `http://localhost:3001/signin`
 
     let options = {
       method: 'POST',
-      // credentials: 'include',
-      // mode: 'cors',
       data: {
         name: username,
         password: password
@@ -46,20 +45,23 @@ class Account {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        // Authorization: 'Basic '+btoa(`${username}:${password}`)
       },
     };
 
-    this.request(url, options).then( response => {
-      console.log(response);
-    } )
+    this.request(url, options)
+      .then(response => response.json())
+      .then( response => {
+        if (response.token){
+          localStorage.setItem('auth',JSON.stringify(response));
+        }
+      } )
 
     // if(this.isSignedIn()) console.log('signed in true');
     // Do something with session info or cookie
   }
 
   signOut() {
-
+    localStorage.removeItem('auth');
     // Remove session info or cookie
   }
 
