@@ -1,7 +1,8 @@
 class Account {
-  constructor(handleConnectRemoteDB) {
+  constructor(handleGetUserDB, handleConnectToUserDB) {
     this.remoteDB = null;
-    this.onConnectRemoteDB = handleConnectRemoteDB;
+    this.getUserDB = handleGetUserDB;
+    this.connectToUserDB = handleConnectToUserDB;
   }
 
   addRemoteDB(remoteDB) {
@@ -29,7 +30,8 @@ class Account {
     }).then(response => {
       console.log('[RESPONSE] ', response);
 
-      this.onConnectRemoteDB(username, password);
+      let db = this.getUserDB(username, password);
+      this.connectToUserDB(db);
       return response;
     }).catch(error => {
       console.log('[ERROR] ', error);
@@ -66,8 +68,14 @@ class Account {
     // this.request(url, options);
   // }
 
-  signInAttempt({ username, password }) {
-    this.onConnectRemoteDB(username, password);
+  signIn({ username, password }) {
+		let remoteDB = this.getUserDB(username, password);
+    remoteDB.logIn(username, password).then(res => {
+      console.log("[SIGN-IN RESPONSE] ", res);
+      this.connectToUserDB(remoteDB);
+    }).catch(err => {
+      console.log("[SIGN-IN ERROR] ", err);
+    });
 
     // if (!username || !password) {
     //   throw new Error('username and password are required.');
@@ -78,8 +86,20 @@ class Account {
   }
 
   signOut() {
-    localStorage.removeItem('auth');
+    this.remoteDB.logOut();
     // Remove session info or cookie
+  }
+
+  getSession() {
+    if (this.remoteDB) {
+      return this.remoteDB.getSession().then(res => {
+        console.log("[GET SESSION RESPONSE]", res);
+      }).catch(err => {
+        console.log("[GET SESSION ERROR]", err);
+      });
+    }
+
+    // TODO: If user is not signed in
   }
 
   get({ username, password }) {

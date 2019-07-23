@@ -6,31 +6,32 @@ import PouchAuth from 'pouchdb-authentication';
 PouchDB.plugin(PouchAuth);
 
 const TEMP_CONFIG = {
-	remoteBaseURL: 'http://localhost:5894/',
+	remoteBaseURL: 'http://localhost:5984/',
 }
 
 class Cushion {
 	constructor({ localDBName, user }) {
-		this.remoteDB = null;
+		// this.remoteDB = null;
 		this.localDB = new PouchDB(localDBName);
 		this.store = new Store(this.localDB);
-		this.account = new Account(this.handleConnectRemoteDB.bind(this));
+		this.account = new Account(this.handleGetUsereDB.bind(this), this.handleConnectToUserDB.bind(this));
 
 		if (user) {
 			this.handleConnectRemoteDB(user.username);
 		}
 	}
 
-	handleConnectRemoteDB(username, password) {
+	// Retrieving user DB
+	handleGetUsereDB(username, password) {
 		const hexUsername = Buffer.from(username, 'utf8').toString('hex');
 		const remoteDBAddress = `${TEMP_CONFIG.remoteBaseURL}cushion_${hexUsername}`;
+		return new PouchDB(remoteDBAddress, {skip_setup: true, auth: {username, password}});
+	}
 
-		this.remoteDB = new PouchDB(remoteDBAddress, {skip_setup: true});
-
-		this.remoteDB.logIn(username, password).then(res => {
-			this.account.addRemoteDB(this.remoteDB);
-			this.store.connectRemoteDB(this.remoteDB);
-		}).catch(err => console.log(err));
+	// Connecting Store and Account to user DB
+	handleConnectToUserDB(db) {
+		this.account.addRemoteDB(db);
+		this.store.connectRemoteDB(db);
 	}
 };
 
