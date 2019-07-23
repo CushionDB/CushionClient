@@ -1,3 +1,3 @@
 import Cushion from './cushion';
 
-global.cushion = new Cushion({localDBName:'test'});
+global.cushion = new Cushion();

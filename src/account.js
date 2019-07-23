@@ -1,18 +1,27 @@
+
+import PouchDB from 'pouchdb';
+import PouchAuth from 'pouchdb-authentication';
+
+PouchDB.plugin(PouchAuth);
+
+const TEMP_CONFIG = {
+	remoteBaseURL: 'http://localhost:5984/',
+}
+
 class Account {
-  constructor(handleGetUserDB, handleConnectToUserDB) {
-    this.remoteDB = null;
-    this.getUserDB = handleGetUserDB;
-    this.connectToUserDB = handleConnectToUserDB;
+
+  constructor(store) {
+    this.CushionStore = store;
   }
 
-  addRemoteDB(remoteDB) {
-    this.remoteDB = remoteDB;
-  }
+	getUserDB(username, password) {
+		const hexUsername = Buffer.from(username, 'utf8').toString('hex');
+		const remoteDBAddress = `${TEMP_CONFIG.remoteBaseURL}cushion_${hexUsername}`;
+		this.remoteDB = new PouchDB(remoteDBAddress, {skip_setup: true, auth: {username, password}});
+    this.CushionStore.attachRemoteDB(this.remoteDB);
+	}
 
   isSignedIn(){
-    // return localStorage.getItem('signedIn') === 'true';
-    let authorization = JSON.parse(localStorage.getItem('auth'));
-    return (!!authorization);
   }
 
   signUp({ username, password }) {
@@ -30,59 +39,21 @@ class Account {
     }).then(response => {
       console.log('[RESPONSE] ', response);
 
-      let db = this.getUserDB(username, password);
-      this.connectToUserDB(db);
+      this.getUserDB(username, password);
       return response;
     }).catch(error => {
       console.log('[ERROR] ', error);
     });
   }
 
-
-  // signUp(username, password) {
-  //   return this.remoteDB.signUp(username, password)
-
-  //     .then(res => {
-  //       console.log(res);
-  //     })
-
-  //     .catch(err => {
-  //       console.log(err);
-  //     })
-
-
-    // if (!accountInfo.username || !accountInfo.password) {
-    //   throw new Error('username and password are required.');
-    // }
-
-    // let url = `http://localhost:3001/signup`
-    // let options = {
-    //   method: 'POST',
-    //   data: accountInfo,
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //     "Accept": "application/json",
-    //   },
-    // };
-
-    // this.request(url, options);
-  // }
-
   signIn({ username, password }) {
-		let remoteDB = this.getUserDB(username, password);
-    remoteDB.logIn(username, password).then(res => {
+		this.getUserDB(username, password);
+
+    this.remoteDB.logIn(username, password).then(res => {
       console.log("[SIGN-IN RESPONSE] ", res);
-      this.connectToUserDB(remoteDB);
     }).catch(err => {
       console.log("[SIGN-IN ERROR] ", err);
     });
-
-    // if (!username || !password) {
-    //   throw new Error('username and password are required.');
-    // }
-
-    // if(this.isSignedIn()) console.log('signed in true');
-    // Do something with session info or cookie
   }
 
   signOut() {
@@ -168,6 +139,7 @@ class Account {
       console.log('[ERROR] ', error);
     });
   }
+
 }
 
 export default Account;
