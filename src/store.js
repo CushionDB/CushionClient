@@ -71,15 +71,16 @@ class Store {
         selector: {
           [attribute]: value
         }
-      }).then( docs =>{
-        console.log(docs);
-        return docs;
+      }).then( r =>{
+        console.log(r.docs);
+        return r.docs;
       }).catch( err => console.log(err) );
     }).catch( err => console.log(err) );
   }
 
   get(id) {
-    return this.localDB.get(id).then(doc => {
+    return this.localDB.get(id)
+      .then(doc => {
       const { _rev, ...docWithoutRev } = doc;
 
       return docWithoutRev;
@@ -87,14 +88,15 @@ class Store {
   }
 
   update(id, attrs) {
-    return this.localDB.get(id).then(doc => {
-      this.localDB.put({
-        _id: doc._id,
-        _rev: doc._rev,
-        ...attrs
-      }).then(doc => doc.id)
-        .catch(e => console.log(e));
-    });
+    return this.localDB.get(id)
+      .then(doc => {
+        console.log(doc);
+        this.localDB.put({
+          ...doc, 
+          ...attrs
+        }).then(doc => doc.id)
+          .catch(e => console.log(e));
+      });
   }
 
   delete(id) {
