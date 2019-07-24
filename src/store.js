@@ -1,11 +1,8 @@
 import PouchDB from 'pouchdb';
-import PouchAuth from 'pouchdb-authentication';
+import PouchDBFind from 'pouchdb-find';
 
-PouchDB.plugin(PouchAuth);
+PouchDB.plugin(PouchDBFind);
 
-const TEMP_CONFIG = {
-	remoteBaseURL: 'http://localhost:5984/',
-}
 
 class Store {
   constructor() {
@@ -16,24 +13,30 @@ class Store {
     // this.bindToLocalChange(this.notifyListeners);
   }
 
-	getRemoteDB(username, password) {
-		const hexUsername = Buffer.from(username, 'utf8').toString('hex');
-		const remoteDBAddress = `${TEMP_CONFIG.remoteBaseURL}cushion-${hexUsername}`;
 
-		this.remoteDB = new PouchDB(remoteDBAddress, {skip_setup: true, auth: {username, password}});
-	}
+  // connectRemoteDB() {
+  //   console.log(this.remoteDB.name);
+  //   // this.bindToLocalChange(() => {
+  //    this.pushToRemoteDB();
+  //   // });
+  // }
 
-  // connectRemoteDB(remoteDB) {
-  connectRemoteDB() {
-    console.log(this.remoteDB.name);
-    // this.bindToLocalChange(() => {
-      PouchDB.replicate(this.localDB.name, this.remoteDB.name);
-    // });
+  pushToRemoteDB(){
+    PouchDB.replicate(this.localDB.name, this.remoteDB.name);
   }
 
-  // attachRemoteDB(remoteDb){
-  //   this.remoteDB = remoteDb;
-  // }
+  pullFromRemoteDB(){
+    PouchDB.replicate(this.remoteDB.name, this.localDB.name);
+  }
+
+  attachRemoteDB(remoteDb){
+    this.remoteDB = remoteDb;
+    // this.subscribe(this.pushToRemoteDB);
+  }
+
+  detachRemoteDB(){
+    this.remoteDB = null;
+  }
 
   notifyListeners() {
     this.listeners.forEach(l => l());
@@ -60,7 +63,22 @@ class Store {
       .catch(e => console.log(e));
   }
 
-  get() {
+  find(attribute, value){
+    return this.localDB.createIndex({
+      index: {fields: [attribute]}
+    }).then( res => {
+      return this.localDB.find({
+        selector: {
+          [attribute]: value
+        }
+      }).then( docs =>{
+        console.log(docs);
+        return docs;
+      }).catch( err => console.log(err) );
+    }).catch( err => console.log(err) );
+  }
+
+  get(id) {
     return this.localDB.get(id).then(doc => {
       const { _rev, ...docWithoutRev } = doc;
 

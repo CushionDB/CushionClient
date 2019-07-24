@@ -1,8 +1,37 @@
+import PouchDB from 'pouchdb';
+import PouchAuth from 'pouchdb-authentication';
+
+PouchDB.plugin(PouchAuth);
+
+const TEMP_CONFIG = {
+  remoteBaseURL: 'http://localhost:5984/',
+}
 
 class Account {
 
   constructor(store) {
-    this.CushionStore = store;
+    this.store = store;
+  }
+
+  remoteDbName(username){
+    const hexUsername = Buffer.from(username, 'utf8').toString('hex');
+    this.remoteDBAddress = `${TEMP_CONFIG.remoteBaseURL}cushion_${hexUsername}`;
+  }
+
+  getRemoteDB(username, password) {
+    if(!this.remoteDBAddress) this.remoteDbName(username);
+    this.remoteDB = new PouchDB(this.remoteDBAddress, {skip_setup: true, auth: {username, password}});
+    this.store.attachRemoteDB(this.remoteDB);
+  }
+
+  getUserName(){
+    if (!this.remoteDB) return false;
+    return this.remoteDB.__opts.auth.username;
+  }
+
+  getPassword(){
+    if (!this.remoteDB) return false;
+    return this.remoteDB.__opts.auth.password;
   }
 
   isSignedIn(){
@@ -21,10 +50,10 @@ class Account {
         "Accept": "application/json",
       }
     }).then(response => {
-      console.log('[RESPONSE] ', response);
 
-      this.CushionStore.getRemoteDB(username, password)
-      
+      console.log('[RESPONSE] ', response);
+      this.getRemoteDB(username, password)
+
       return response;
     }).catch(error => {
       console.log('[ERROR] ', error);
@@ -32,82 +61,72 @@ class Account {
   }
 
   signIn({ username, password }) {
-    this.CushionStore.getRemoteDB(username, password)
+    this.getRemoteDB(username, password);
 
-    this.CushionStore.remoteDB.logIn(username, password)
+    this.remoteDB.logIn(username, password)
       .then(res => {
         console.log("[SIGN-IN RESPONSE] ", res);
+        this.store.pullFromRemoteDB();
       }).catch(err => {
         console.log("[SIGN-IN ERROR] ", err);
       });
   }
 
   signOut() {
-    this.CushionStore.remoteDB.logOut();
+    if(!this.remoteDB) return true;
+    this.remoteDB.logOut();
+    this.store.detachRemoteDB();
     // Remove session info or cookie
   }
 
   getSession() {
-    if (this.CushionStore.remoteDB) {
-      return this.CushionStore.remoteDB.getSession().then(res => {
+    if (this.remoteDB) {
+      return this.remoteDB.getSession().then(res => {
         console.log("[GET SESSION RESPONSE]", res);
       }).catch(err => {
         console.log("[GET SESSION ERROR]", err);
       });
     }
-
     // TODO: If user is not signed in
   }
 
-  get({ username, password }) {
-    if (!username || !password) {
-      throw new Error('username and password are required.');
-    }
-
-    let url = 'http://localhost:8080/api/info'
-    let options = {
-      method: 'POST',
-      data: {
-        name: username,
-        password: password
-      },
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json"
-      },
-    };
-
-    this.request(url, options);
+  getUserDoc(username){
+    this.remoteDB.getUser(username)
+      .then( res => console.log(res) )
+      .catch( err => console.log(err) );
   }
 
-  update(accountInfo) {
-    let url = 'http://localhost:8080/api/update'
+  changePassword(username, newPassword){
+    this.remoteDB.changePassword(username, newPassword)
+      .then(res => {
+        console.log(res)
+        this.getRemoteDB(username, newPassword);
+      })
+      .catch(err => console.log(err));
+  }
+
+  destroy(username){
+    this.remoteDB.deleteUser(username)
+      .then( res => {
+        this.remoteDB = null;
+        console.log(res); })
+      .catch( err => console.log(err) );
+  }
+
+  changeUsername({curUsername, password, newUsername}){
+    let url = `${TEMP_CONFIG.remoteBaseURL}update`;
     let options = {
       method: 'PUT',
-      data: accountInfo,
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json"
-      },
-    };
-
-    this.request(url, options);
-  }
-
-  destroy({ username, password }) {
-    let url = 'http://localhost:8080/api/destroy'
-    let options = {
-      method: 'DELETE',
       data: {
-        name: username,
-        password: password
+        name: curUsername,
+        password: password,
+        newName: newUsername
       },
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/json"
+        "Accept": "application/json"
       },
     };
-
     request(url, options);
   }
 
@@ -129,3 +148,38 @@ class Account {
 }
 
 export default Account;
+
+  // update(accountInfo) {
+  //   let url = 'http://localhost:8080/api/update'
+  //   let options = {
+  //     method: 'PUT',
+  //     data: accountInfo,
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       Accept: "application/json"
+  //     },
+  //   };
+
+  //   this.request(url, options);
+  // }
+
+// get({ username, password }) {
+//   if (!username || !password) {
+//     throw new Error('username and password are required.');
+//   }
+
+//   let url = 'http://localhost:8080/api/info'
+//   let options = {
+//     method: 'POST',
+//     data: {
+//       name: username,
+//       password: password
+//     },
+//     headers: {
+//       "Content-Type": "application/json",
+//       Accept: "application/json"
+//     },
+//   };
+
+//   this.request(url, options);
+// }
