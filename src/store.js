@@ -1,25 +1,39 @@
 import PouchDB from 'pouchdb';
+import PouchAuth from 'pouchdb-authentication';
+
+PouchDB.plugin(PouchAuth);
+
+const TEMP_CONFIG = {
+	remoteBaseURL: 'http://localhost:5984/',
+}
 
 class Store {
   constructor() {
 
-    this.localDB = new PouchDB('cushionDB');
+    this.localDB = new PouchDB('cushionDB', {skip_setup: true});
     this.listeners = [];
 
     // this.bindToLocalChange(this.notifyListeners);
   }
 
+	getRemoteDB(username, password) {
+		const hexUsername = Buffer.from(username, 'utf8').toString('hex');
+		const remoteDBAddress = `${TEMP_CONFIG.remoteBaseURL}cushion-${hexUsername}`;
+
+		this.remoteDB = new PouchDB(remoteDBAddress, {skip_setup: true, auth: {username, password}});
+	}
+
   // connectRemoteDB(remoteDB) {
   connectRemoteDB() {
+    console.log(this.remoteDB.name);
     // this.bindToLocalChange(() => {
       PouchDB.replicate(this.localDB.name, this.remoteDB.name);
-
     // });
   }
 
-  attachRemoteDB(remoteDb){
-    this.remoteDB = remoteDb;
-  }
+  // attachRemoteDB(remoteDb){
+  //   this.remoteDB = remoteDb;
+  // }
 
   notifyListeners() {
     this.listeners.forEach(l => l());

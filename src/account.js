@@ -1,25 +1,9 @@
 
-import PouchDB from 'pouchdb';
-import PouchAuth from 'pouchdb-authentication';
-
-PouchDB.plugin(PouchAuth);
-
-const TEMP_CONFIG = {
-	remoteBaseURL: 'http://localhost:5984/',
-}
-
 class Account {
 
   constructor(store) {
     this.CushionStore = store;
   }
-
-	getUserDB(username, password) {
-		const hexUsername = Buffer.from(username, 'utf8').toString('hex');
-		const remoteDBAddress = `${TEMP_CONFIG.remoteBaseURL}cushion_${hexUsername}`;
-		this.remoteDB = new PouchDB(remoteDBAddress, {skip_setup: true, auth: {username, password}});
-    this.CushionStore.attachRemoteDB(this.remoteDB);
-	}
 
   isSignedIn(){
   }
@@ -39,7 +23,8 @@ class Account {
     }).then(response => {
       console.log('[RESPONSE] ', response);
 
-      this.getUserDB(username, password);
+      this.CushionStore.getRemoteDB(username, password)
+      
       return response;
     }).catch(error => {
       console.log('[ERROR] ', error);
@@ -47,23 +32,24 @@ class Account {
   }
 
   signIn({ username, password }) {
-		this.getUserDB(username, password);
+    this.CushionStore.getRemoteDB(username, password)
 
-    this.remoteDB.logIn(username, password).then(res => {
-      console.log("[SIGN-IN RESPONSE] ", res);
-    }).catch(err => {
-      console.log("[SIGN-IN ERROR] ", err);
-    });
+    this.CushionStore.remoteDB.logIn(username, password)
+      .then(res => {
+        console.log("[SIGN-IN RESPONSE] ", res);
+      }).catch(err => {
+        console.log("[SIGN-IN ERROR] ", err);
+      });
   }
 
   signOut() {
-    this.remoteDB.logOut();
+    this.CushionStore.remoteDB.logOut();
     // Remove session info or cookie
   }
 
   getSession() {
-    if (this.remoteDB) {
-      return this.remoteDB.getSession().then(res => {
+    if (this.CushionStore.remoteDB) {
+      return this.CushionStore.remoteDB.getSession().then(res => {
         console.log("[GET SESSION RESPONSE]", res);
       }).catch(err => {
         console.log("[GET SESSION ERROR]", err);
