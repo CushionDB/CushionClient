@@ -18,6 +18,10 @@ class Account {
     this.remoteDBAddress = `${TEMP_CONFIG.remoteBaseURL}cushion_${hexUsername}`;
   }
 
+  getClassName(){
+  return this.constructor.name;
+  }
+
   getRemoteDB(username, password) {
     if(!this.remoteDBAddress) this.remoteDbName(username);
     this.remoteDB = new PouchDB(this.remoteDBAddress, {skip_setup: true, auth: {username, password}});
@@ -67,6 +71,7 @@ class Account {
       .then(res => {
         console.log("[SIGN-IN RESPONSE] ", res);
         this.store.pullFromRemoteDB();
+        this.store.pushToRemoteDB();
       }).catch(err => {
         console.log("[SIGN-IN ERROR] ", err);
       });
@@ -149,37 +154,3 @@ class Account {
 
 export default Account;
 
-  // update(accountInfo) {
-  //   let url = 'http://localhost:8080/api/update'
-  //   let options = {
-  //     method: 'PUT',
-  //     data: accountInfo,
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //       Accept: "application/json"
-  //     },
-  //   };
-
-  //   this.request(url, options);
-  // }
-
-// get({ username, password }) {
-//   if (!username || !password) {
-//     throw new Error('username and password are required.');
-//   }
-
-//   let url = 'http://localhost:8080/api/info'
-//   let options = {
-//     method: 'POST',
-//     data: {
-//       name: username,
-//       password: password
-//     },
-//     headers: {
-//       "Content-Type": "application/json",
-//       Accept: "application/json"
-//     },
-//   };
-
-//   this.request(url, options);
-// }

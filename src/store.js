@@ -5,21 +5,20 @@ PouchDB.plugin(PouchDBFind);
 
 
 class Store {
+
   constructor() {
 
-    this.localDB = new PouchDB('cushionDB', {skip_setup: true});
+    this.localDB = new PouchDB('cushionDB');
     this.listeners = [];
 
-    // this.bindToLocalChange(this.notifyListeners);
+    this.bindToLocalChange(this.notifyListeners);
   }
 
-
-  // connectRemoteDB() {
-  //   console.log(this.remoteDB.name);
-  //   // this.bindToLocalChange(() => {
-  //    this.pushToRemoteDB();
-  //   // });
-  // }
+  connectRemoteDB() {
+    this.bindToLocalChange(() => {
+     this.pushToRemoteDB();
+    });
+  }
 
   pushToRemoteDB(){
     PouchDB.replicate(this.localDB.name, this.remoteDB.name);
@@ -31,7 +30,6 @@ class Store {
 
   attachRemoteDB(remoteDb){
     this.remoteDB = remoteDb;
-    // this.subscribe(this.pushToRemoteDB);
   }
 
   detachRemoteDB(){
@@ -46,7 +44,7 @@ class Store {
     this.localDB.changes({
       live: true,
       since: 'now'
-    }).on('change', cb);
+    }).on('change', cb.bind(this));
   }
 
   subscribe(listener) {
