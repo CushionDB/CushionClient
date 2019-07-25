@@ -111,9 +111,10 @@ class Store {
     return this.localDB.allDocs({
       'include_docs': true,
     }).then(docs => {
-      return docs.map(doc => {
-        const { _rev, ...docWithoutRev} = doc;
-        return docWithoutRev;
+      return docs.rows.map(doc => {
+        const d = doc.doc;
+        delete d._rev;
+        return d;
       });
     }).catch(e => e);
   }

@@ -55,7 +55,7 @@ class Account {
       }
     }).then(response => {
 
-      console.log('[RESPONSE] ', response);
+      // console.log('[RESPONSE] ', response);
       this.getRemoteDB(username, password)
 
       return response;
