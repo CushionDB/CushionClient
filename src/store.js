@@ -1,13 +1,10 @@
 import PouchDB from 'pouchdb';
 import PouchDBFind from 'pouchdb-find';
-
 PouchDB.plugin(PouchDBFind);
 
-
 class Store {
-
   constructor() {
-
+    this.registerServiceWorker();
     this.localDB = new PouchDB('cushionDB');
     this.listeners = [];
 
@@ -15,21 +12,28 @@ class Store {
   }
 
   connectRemoteDB() {
-    this.bindToLocalChange(() => {
-     this.pushToRemoteDB();
-    });
+    console.log('[connectRemoteDB] ', 'called');
+    this.bindToLocalChange(this.pushToRemoteDB);
   }
 
   pushToRemoteDB(){
-    PouchDB.replicate(this.localDB.name, this.remoteDB.name);
+    console.log('[pushToRemoteDB] ', 'called');
+    this.serviceWorkerReady().then(sw => {
+      let payload = {
+        remoteDBAddress: this.remoteDB.name,
+        localDBName: this.localDB.name
+      }
+      this.postMessage('SCHEDULE_REPLICATION', payload, sw);
+    });
   }
 
   pullFromRemoteDB(){
     PouchDB.replicate(this.remoteDB.name, this.localDB.name);
   }
 
-  attachRemoteDB(remoteDb){
+  attachRemoteDB(remoteDb) {
     this.remoteDB = remoteDb;
+    this.connectRemoteDB();
   }
 
   detachRemoteDB(){
@@ -90,7 +94,7 @@ class Store {
       .then(doc => {
         console.log(doc);
         this.localDB.put({
-          ...doc, 
+          ...doc,
           ...attrs
         }).then(doc => doc.id)
           .catch(e => console.log(e));
@@ -126,6 +130,42 @@ class Store {
     });
   }
 
+  postMessage(action, payload, sw) {
+    return new Promise((res, rej) => {
+      const msgChannel = new MessageChannel();
+      msgChannel.port1.onmessage = (evt) => {
+        if (evt.data.error) {
+          rej(evt.data.error);
+        } else {
+          res(evt.data);
+        }
+      }
+
+      console.log('[sw] ', sw);
+      sw.controller.postMessage({ action, payload }, [msgChannel.port2]);
+     });
+   }
+
+   registerServiceWorker() {
+     if ('serviceWorker' in navigator) {
+       navigator.serviceWorker.register('../sw.js');
+     }
+   }
+
+   serviceWorkerReady() {
+     if (navigator.serviceWorker.controller) {
+       return Promise.resolve(navigator.serviceWorker);
+     }
+
+     return new Promise((resolve) => {
+       function onControllerChange() {
+         navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+         resolve(navigator.serviceWorker);
+       }
+
+       navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+     });
+   }
 }
 
 export default Store;

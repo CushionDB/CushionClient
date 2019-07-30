@@ -14,11 +14,11 @@ const cushion = new Cushion();
 
 // cushion.account.signUp({
 //   username: 'Foo',
-//   password: 'secret' 
-// }).then( response => { 
-//   console.log(cushion.account.getUserName()) 
-// }).catch(err => {  
-//   console.log(err) 
+//   password: 'secret'
+// }).then( response => {
+//   console.log(cushion.account.getUserName())
+// }).catch(err => {
+//   console.log(err)
 // });
 
 // cushion.store.set({
@@ -36,7 +36,3 @@ const cushion = new Cushion();
 // }).catch(err => {
 //   console.log(err);
 // });
-
-
-
-
