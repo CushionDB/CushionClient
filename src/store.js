@@ -7,8 +7,68 @@ class Store {
     this.registerServiceWorker();
     this.localDB = new PouchDB('cushionDB');
     this.listeners = [];
+    this.publicVapidKey = 'BCA04yoTGRbqfe__mD3jXmNxYWCKF2jcPY4Kbas7GqV3o7vS43kahAucdIQF_aFix1mCkkGQzRwqob53atFxHJg';
 
     this.bindToLocalChange(this.notifyListeners);
+  }
+
+  subscribeToNotifications() {
+    const username = this.remoteDB.__opts.auth.username;
+
+    this.serviceWorkerReady().then(sw => {
+      console.log('[PUSHMANAGER] ');
+      sw.ready.then(reg => {
+        reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: this.urlB64ToUint8Array(this.publicVapidKey),
+        }).then(subscription => {
+          console.log('[SUBSCRIPTION] ', subscription);
+          const body = {
+            username,
+            subscription,
+            device: navigator.platform
+          };
+
+          fetch('http://localhost:3001/subscribe', {
+            method: 'POST',
+            body: JSON.stringify(body),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+        });
+      })
+    });
+  }
+
+  triggerPushNotification() {
+    const data = {
+      username: this.remoteDB.__opts.auth.username,
+      device: navigator.platform
+    };
+
+    fetch('http://localhost:3001/notify', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
+  urlB64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/\-/g, '+')
+      .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
   }
 
   connectRemoteDB() {

@@ -23,6 +23,20 @@ self.addEventListener('message', evt => {
   }
 });
 
+self.addEventListener('push', function(event) {
+  console.log('[Service Worker] Push Received.');
+  console.log(`[Service Worker] Push had this data: "${event.data.text()}"`);
+
+  const title = 'cushionJS';
+  const options = {
+    body: 'Updated',
+    icon: 'images/icon.png',
+    badge: 'images/badge.png'
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
 function pouchPush(localDBName, remoteDBAddress) {
   console.log('[pouchPush] ', 'called');
   return new Promise((res, rej) => {
