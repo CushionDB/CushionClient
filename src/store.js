@@ -197,7 +197,6 @@ class Store {
         }
       }
 
-      console.log('[sw] ', sw);
       sw.controller.postMessage({ action, payload }, [msgChannel.port2]);
      });
    }

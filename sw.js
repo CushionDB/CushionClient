@@ -1,19 +1,21 @@
 importScripts('src/pouchdb.js');
 
 self.addEventListener('sync', evt => {
-  getMetaDB().then(doc => {
-    let localDBName = doc.cushionLocalDBName;
-    let remoteDBAddress = doc.cushionRemoteDBAddress;
+  evt.waitUntil(
+    getMetaDB().then(doc => {
+      let localDBName = doc.cushionLocalDBName;
+      let remoteDBAddress = doc.cushionRemoteDBAddress;
 
-    if (evt.tag === 'REPLICATE_TO_SERVER') {
-      evt.waitUntil(pouchSync(localDBName, remoteDBAddress));
-    } else if (evt.tag === 'REPLICATE_FROM_SERVER') {
-      evt.waitUntil(pouchSync(remoteDBAddress, localDBName));
-    }
-  }).catch(err => {
-    // Doc does not exist
-    console.log('SYNC ERROR', err);
-  });
+      if (evt.tag === 'REPLICATE_TO_SERVER') {
+        return pouchSync(remoteDBAddress, localDBName)
+      } else if (evt.tag === 'REPLICATE_FROM_SERVER') {
+        return pouchSync(remoteDBAddress, localDBName);
+      }
+    }).catch(err => {
+      // Doc does not exist
+      console.log('SYNC ERROR', err);
+    })
+  )
 });
 
 self.addEventListener('message', evt => {
@@ -39,12 +41,17 @@ self.addEventListener('push', function(event) {
   };
 
   if (data.action === 'SYNC') {
-    getMetaDB().then(doc => {
-      let localDBName = doc.cushionLocalDBName;
-      let remoteDBAddress = doc.cushionRemoteDBAddress;
-      // self.registration.sync.register('REPLICATE_FROM_SERVER');
-      event.waitUntil(Promise.all([self.registration.showNotification(title, options), pouchSync(remoteDBAddress, localDBName)]));
-    })
+    event.waitUntil(
+      getMetaDB().then(doc => {
+        let localDBName = doc.cushionLocalDBName;
+        let remoteDBAddress = doc.cushionRemoteDBAddress;
+
+        return Promise.all([
+          pouchSync(remoteDBAddress, localDBName),
+          self.registration.showNotification(title, options)
+        ]);
+      })
+    );
   }
 });
 
@@ -54,8 +61,6 @@ function getMetaDB() {
 }
 
 function pouchSync(fromDB, toDB) {
-  console.log('from', fromDB);
-  console.log('to', toDB);
   return new PouchDB(fromDB).replicate.to(toDB);
   // return new Promise((res, rej) => {
   //   PouchDB.replicate(fromDB, toDB)

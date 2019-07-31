@@ -4,7 +4,7 @@ import PouchAuth from 'pouchdb-authentication';
 PouchDB.plugin(PouchAuth);
 
 const TEMP_CONFIG = {
-  remoteBaseURL: 'http://127.0.0.1:5984/',
+  remoteBaseURL: 'http://localhost:5984/',
 }
 
 class Account {
@@ -90,6 +90,8 @@ class Account {
           cushionLocalDBName: this.store.localDB.name,
           cushionRemoteDBAddress: this.remoteDB.name
         };
+
+        console.log(res);
 
         cushionMeta.put(cushionDBDoc)
           .then(res => {
