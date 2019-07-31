@@ -16,7 +16,6 @@ class Store {
     const username = this.remoteDB.__opts.auth.username;
 
     this.serviceWorkerReady().then(sw => {
-      console.log('[PUSHMANAGER] ');
       sw.ready.then(reg => {
         reg.pushManager.subscribe({
           userVisibleOnly: true,
@@ -186,7 +185,7 @@ class Store {
     });
   }
 
-  postMessage(action, payload, sw) {
+  postMessage(id, payload, sw) {
     return new Promise((res, rej) => {
       const msgChannel = new MessageChannel();
       msgChannel.port1.onmessage = (evt) => {
@@ -197,7 +196,7 @@ class Store {
         }
       }
 
-      sw.controller.postMessage({ action, payload }, [msgChannel.port2]);
+      sw.controller.postMessage({ id, payload }, [msgChannel.port2]);
      });
    }
 
