@@ -4,7 +4,7 @@ import PouchAuth from 'pouchdb-authentication';
 PouchDB.plugin(PouchAuth);
 
 const TEMP_CONFIG = {
-  remoteBaseURL: 'http://localhost:5984/',
+  remoteBaseURL: 'http://127.0.0.1:5984/',
 }
 
 class Account {
