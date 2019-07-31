@@ -8,9 +8,16 @@ const TEMP_CONFIG = {
 }
 
 class Account {
-
   constructor(store) {
     this.store = store;
+    const cushionMeta = new PouchDB('cushionMeta');
+    cushionMeta.get('cushionMeta')
+      .then(res => {
+        this.remoteDB = new PouchDB(res.cushionRemoteDBAddress);
+        this.store.attachRemoteDB(this.remoteDB);
+      }).catch(err => {
+        this.remoteDB = null;
+      })
   }
 
   remoteDbName(username){
@@ -39,6 +46,14 @@ class Account {
   }
 
   isSignedIn(){
+    const cushionMeta = new PouchDB('cushionMeta');
+    return cushionMeta.get('cushionMeta')
+      .then(res => {
+        console.log(res);
+        return true;
+      }).catch(err => {
+        console.log(err);
+      });
   }
 
   signUp({ username, password }) {
@@ -69,19 +84,38 @@ class Account {
 
     this.remoteDB.logIn(username, password)
       .then(res => {
-        console.log("[SIGN-IN RESPONSE] ", res);
-        this.store.pullFromRemoteDB();
-        this.store.pushToRemoteDB();
+        const cushionMeta = new PouchDB('cushionMeta');
+        const cushionDBDoc = {
+          _id: 'cushionMeta',
+          cushionLocalDBName: this.store.localDB.name,
+          cushionRemoteDBAddress: this.remoteDB.name
+        };
+
+        cushionMeta.put(cushionDBDoc)
+          .then(res => {
+            this.store.pullFromRemoteDB();
+            this.store.pushToRemoteDB();
+          });
       }).catch(err => {
         console.log("[SIGN-IN ERROR] ", err);
       });
   }
 
   signOut() {
-    if(!this.remoteDB) return true;
-    this.remoteDB.logOut();
-    this.store.detachRemoteDB();
-    // Remove session info or cookie
+    if (!this.isSignedIn()) throw new Error('User is not signed in');
+
+    this.remoteDB.logOut()
+      .then(res => {
+        if (!res.ok) throw new Error('Sign out failed.');
+
+        this.store.detachRemoteDB();
+        this.remoteDB = null;
+        new PouchDB('cushionMeta').destroy()
+          .then(res => {
+          }).catch(err => {
+            console.log(err);
+          });
+      });
   }
 
   getSession() {
@@ -153,4 +187,3 @@ class Account {
 }
 
 export default Account;
-

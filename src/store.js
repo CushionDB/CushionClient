@@ -47,7 +47,7 @@ class Store {
       device: navigator.platform
     };
 
-    fetch('http://localhost:3001/notify', {
+    fetch('http://localhost:3001/triggerSync', {
       method: 'POST',
       body: JSON.stringify(data),
       headers: {
@@ -72,23 +72,19 @@ class Store {
   }
 
   connectRemoteDB() {
-    console.log('[connectRemoteDB] ', 'called');
     this.bindToLocalChange(this.pushToRemoteDB);
   }
 
   pushToRemoteDB(){
-    console.log('[pushToRemoteDB] ', 'called');
     this.serviceWorkerReady().then(sw => {
-      let payload = {
-        remoteDBAddress: this.remoteDB.name,
-        localDBName: this.localDB.name
-      }
-      this.postMessage('SCHEDULE_REPLICATION', payload, sw);
+      this.postMessage('SCHEDULE_PUSH', {}, sw);
     });
   }
 
   pullFromRemoteDB(){
-    PouchDB.replicate(this.remoteDB.name, this.localDB.name);
+    this.serviceWorkerReady().then(sw => {
+      this.postMessage('SCHEDULE_PULL', {}, sw);
+    });
   }
 
   attachRemoteDB(remoteDb) {
