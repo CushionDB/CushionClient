@@ -10,7 +10,7 @@ class Cushion {
 
 export default Cushion;
 
-const cushion = new Cushion();
+// const cushion = new Cushion();
 
 // cushion.account.signUp({
 //   username: 'Foo',

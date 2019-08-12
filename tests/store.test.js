@@ -97,8 +97,6 @@ describe('Store functionality', () => {
       expect(res).toHaveProperty('ok', true);
     });
   });
-
-
 });
 
 

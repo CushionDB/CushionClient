@@ -191,7 +191,6 @@ class Store {
       .catch( err => console.log(err) );
   }
 
-
   postMessage(id, payload, sw) {
     return new Promise((res, rej) => {
       const msgChannel = new MessageChannel();

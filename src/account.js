@@ -49,7 +49,7 @@ class Account {
     const cushionMeta = new PouchDB('cushionMeta');
     return cushionMeta.get('cushionMeta')
       .then(res => {
-        console.log(res);
+        // console.log(res);
         return true;
       }).catch(err => {
         console.log(err);
@@ -81,8 +81,10 @@ class Account {
 
   signIn({ username, password }) {
     this.getRemoteDB(username, password);
+    // console.log(username, password);
+    // console.log(this.remoteDB.name);
 
-    this.remoteDB.logIn(username, password)
+    return this.remoteDB.logIn(username, password)
       .then(res => {
         const cushionMeta = new PouchDB('cushionMeta');
         const cushionDBDoc = {
@@ -91,13 +93,15 @@ class Account {
           cushionRemoteDBAddress: this.remoteDB.name
         };
 
-        console.log(res);
+        // console.log(res);
 
         cushionMeta.put(cushionDBDoc)
           .then(res => {
             this.store.pullFromRemoteDB();
             this.store.pushToRemoteDB();
           });
+
+        return res;
       }).catch(err => {
         console.log("[SIGN-IN ERROR] ", err);
       });
@@ -123,7 +127,8 @@ class Account {
   getSession() {
     if (this.remoteDB) {
       return this.remoteDB.getSession().then(res => {
-        console.log("[GET SESSION RESPONSE]", res);
+        // console.log("[GET SESSION RESPONSE]", res);
+        return res;
       }).catch(err => {
         console.log("[GET SESSION ERROR]", err);
       });
@@ -132,9 +137,11 @@ class Account {
   }
 
   getUserDoc(username){
-    this.remoteDB.getUser(username)
-      .then( res => console.log(res) )
-      .catch( err => console.log(err) );
+    return this.remoteDB.getUser(username)
+      .then( res => {
+        // console.log(res) ;
+        return res;
+      }).catch( err => console.log(err) );
   }
 
   changePassword(username, newPassword){
@@ -142,8 +149,8 @@ class Account {
       .then(res => {
         console.log(res)
         this.getRemoteDB(username, newPassword);
-      })
-      .catch(err => console.log(err));
+        return res;
+      }).catch(err => console.log(err));
   }
 
   destroy(username){
@@ -178,7 +185,7 @@ class Account {
       credentials: options.credentials,
       headers: options.headers,
     }).then(response => {
-      console.log('[RESPONSE] ', response);
+      // console.log('[RESPONSE] ', response);
       return response;
       // return response.status ;
     }).catch(error => {
