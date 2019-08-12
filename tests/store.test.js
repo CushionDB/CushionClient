@@ -1,11 +1,13 @@
 import Cushion from '../src/cushion';
+import PouchDB from 'pouchdb'; 
 
+  const store = new Cushion().store;
+  store.localDB = new PouchDB('testDB');
 
 describe('starting an unregistered new cushion DB instance', () => {
-  const store = new Cushion().store;
 
   test('starts with default pouchDB if name not provided', () => {
-    expect(store.localDB.name).toBe('cushionDB');
+    expect(store.localDB.name).toBe('testDB');
   });
 
   test('starts with an empty listeners list', () => {
@@ -15,7 +17,6 @@ describe('starting an unregistered new cushion DB instance', () => {
 });
 
 describe('Store functionality', () => {
-  const store = new Cushion().store;
   const doc = { todo: 'Task 1', due: 'today', completed: false };
   let docID;
 
@@ -46,6 +47,20 @@ describe('Store functionality', () => {
     expect.assertions(1);
     return store.get(docID).then ( doc => {
       expect(doc).toHaveProperty('length', 3);
+    });
+  });
+
+  test('Get All docs', () => {
+    expect.assertions(1);
+    return store.getAll().then( docs => {
+      expect(docs.length).toEqual(1);
+    });
+  });
+
+  test('Delete a document', () => {
+    expect.assertions(1);
+    return store.delete(docID).then(id => {
+      expect(id).toEqual(docID)
     });
   });
 

@@ -160,7 +160,7 @@ class Store {
     return this.localDB.get(id).then(doc => {
       doc._deleted = true;
 
-      this.localDB.put(doc)
+     return  this.localDB.put(doc)
         .then(doc => doc.id)
         .catch(e => console.log(e));
     });
@@ -184,6 +184,7 @@ class Store {
       this.localDB.bulkDocs(docs)
     });
   }
+
 
   postMessage(id, payload, sw) {
     return new Promise((res, rej) => {
