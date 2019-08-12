@@ -1,8 +1,9 @@
 import Cushion from '../src/cushion';
 import PouchDB from 'pouchdb'; 
 
-  const store = new Cushion().store;
-  store.localDB = new PouchDB('testDB');
+const store = new Cushion().store;
+store.localDB = new PouchDB('testDB');
+store.deleteAll();
 
 describe('starting an unregistered new cushion DB instance', () => {
 
@@ -15,7 +16,6 @@ describe('starting an unregistered new cushion DB instance', () => {
   });
 
 });
-
 
 describe('Store functionality', () => {
   const doc = { todo: 'Task 1', due: 'today', completed: false };
@@ -58,10 +58,29 @@ describe('Store functionality', () => {
     });
   });
 
+  test('Add second document to cushionDB', () => {
+    const doc2 = { todo: 'Task 2', due: 'tomorrow', completed: false };
+    expect.assertions(1);
+    return store.set(doc2).then( id => {
+      return store.get(id).then(doc => 
+        expect(doc).toHaveProperty('todo', 'Task 2')
+      )
+    });
+  });
+
+  test('Find a document by attribute', () => {
+    // creates a index document within the local database
+    expect.assertions(1);
+    return store.find('todo', 'Task 2').then( docs =>
+      expect(docs[0]).toHaveProperty('todo', 'Task 2')
+    )
+  });
+
   test('Get All docs', () => {
     expect.assertions(1);
     return store.getAll().then( docs => {
-      expect(docs.length).toEqual(1);
+      // 2 docs plus index document
+      expect(docs.length).toEqual(3);
     });
   });
 

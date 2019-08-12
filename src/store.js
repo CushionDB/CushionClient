@@ -179,9 +179,9 @@ class Store {
   }
 
   deleteAll() {
-    return this.getAll().then(docs => {
-      docs.forEach(doc => doc._deleted = true);
-      this.localDB.bulkDocs(docs)
+    return this.localDB.allDocs().then(docs => {
+      docs.rows.forEach(doc => doc._deleted = true);
+      return this.localDB.bulkDocs(docs.rows)
     });
   }
 
