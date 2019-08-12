@@ -138,17 +138,17 @@ class Store {
   get(id) {
     return this.localDB.get(id)
       .then(doc => {
-      const { _rev, ...docWithoutRev } = doc;
+        const { _rev, ...docWithoutRev } = doc;
 
-      return docWithoutRev;
-    }).catch(e => console.log(e));
+        return docWithoutRev;
+      }).catch(e => console.log(e));
   }
 
   update(id, attrs) {
     return this.localDB.get(id)
       .then(doc => {
         // console.log(doc);
-      return  this.localDB.put({
+        return  this.localDB.put({
           ...doc,
           ...attrs
         }).then(doc => doc.id)
@@ -160,7 +160,7 @@ class Store {
     return this.localDB.get(id).then(doc => {
       doc._deleted = true;
 
-     return  this.localDB.put(doc)
+      return  this.localDB.put(doc)
         .then(doc => doc.id)
         .catch(e => console.log(e));
     });
@@ -185,6 +185,12 @@ class Store {
     });
   }
 
+  destroy(){
+    return this.localDB.destroy()
+      .then( resp => resp)
+      .catch( err => console.log(err) );
+  }
+
 
   postMessage(id, payload, sw) {
     return new Promise((res, rej) => {
@@ -198,29 +204,29 @@ class Store {
       }
 
       sw.controller.postMessage({ id, payload }, [msgChannel.port2]);
-     });
-   }
+    });
+  }
 
-   registerServiceWorker() {
-     if ('serviceWorker' in navigator) {
-       navigator.serviceWorker.register('../sw.js');
-     }
-   }
+  registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('../sw.js');
+    }
+  }
 
-   serviceWorkerReady() {
-     if (navigator.serviceWorker.controller) {
-       return Promise.resolve(navigator.serviceWorker);
-     }
+  serviceWorkerReady() {
+    if (navigator.serviceWorker.controller) {
+      return Promise.resolve(navigator.serviceWorker);
+    }
 
-     return new Promise((resolve) => {
-       function onControllerChange() {
-         navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
-         resolve(navigator.serviceWorker);
-       }
+    return new Promise((resolve) => {
+      function onControllerChange() {
+        navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+        resolve(navigator.serviceWorker);
+      }
 
-       navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
-     });
-   }
+      navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+    });
+  }
 }
 
 export default Store;

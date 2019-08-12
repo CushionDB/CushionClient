@@ -16,9 +16,17 @@ describe('starting an unregistered new cushion DB instance', () => {
 
 });
 
+
 describe('Store functionality', () => {
   const doc = { todo: 'Task 1', due: 'today', completed: false };
   let docID;
+
+  test('Get All docs - no document exist', () => {
+    expect.assertions(1);
+    return store.getAll().then( docs => {
+      expect(docs.length).toEqual(0);
+    });
+  });
 
   test('Add document to cushionDB', () => {
     expect.assertions(1);
@@ -61,6 +69,13 @@ describe('Store functionality', () => {
     expect.assertions(1);
     return store.delete(docID).then(id => {
       expect(id).toEqual(docID)
+    });
+  });
+
+  test('Destroy DB ', () => {
+    expect.assertions(1) ;
+    return store.destroy().then( res => {
+      expect(res).toHaveProperty('ok', true);
     });
   });
 
