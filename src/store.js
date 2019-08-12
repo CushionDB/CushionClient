@@ -129,7 +129,7 @@ class Store {
           [attribute]: value
         }
       }).then( r =>{
-        console.log(r.docs);
+        // console.log(r.docs);
         return r.docs;
       }).catch( err => console.log(err) );
     }).catch( err => console.log(err) );
@@ -147,8 +147,8 @@ class Store {
   update(id, attrs) {
     return this.localDB.get(id)
       .then(doc => {
-        console.log(doc);
-        this.localDB.put({
+        // console.log(doc);
+      return  this.localDB.put({
           ...doc,
           ...attrs
         }).then(doc => doc.id)
