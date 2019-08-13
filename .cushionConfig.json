@@ -1,0 +1,8 @@
+{
+	"database": {
+		"remote-address": "http://localhost:5984"
+	},
+	"public-vapid-key": {
+
+	}
+}
