@@ -1,34 +1,17 @@
 import Store from './store';
 import Account from './account';
 
-import * as metaDBUtils from './utils/metaDBUtils'; 
-
-const localDB = 'cushionDB';
-let remoteDB = null;
+import MetaDB from './metaDB';
 
 class Cushion {
   constructor() {
-  	this.assignRemoteAddress()
-  	.then(() => {
-	    this.store = new Store();
-	    this.account = new Account(this.store);
+  	const metaDB = new MetaDB();
+
+  	metaDB.ready.then(() => {
+			this.store = new Store(metaDB);
+	    this.account = new Account(metaDB, this.store);
   	});
   }
-
- 	localDB() {
- 		return localDB;
- 	}
-
- 	remoteDB() {
- 		return remoteDB;
- 	}
-
- 	assignRemoteAddress() {
- 		return metaDBUtils.getRemoteDBAddress().then(res => {
- 			remoteDB = res;
- 			return Promise.resolve();
- 		});
- 	}
 };
 
 export default Cushion;

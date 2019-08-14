@@ -5,6 +5,7 @@ PouchDB.plugin(PouchDBFind);
 import * as envUtils from './utils/envUtils';
 import * as urls from './utils/urls';
 import * as fetchUtils from './utils/fetchUtils';
+import * as swUtils from './utils/swUtils';
 import * as utils from './utils/storeUtils';
 import urlB64ToUint8Array from './utils/64to8.js';
 
@@ -14,16 +15,22 @@ const TESTING = process.env.NODE_ENV === 'testing';
 const envVars = envUtils.getEnvVars();
 
 // private store properties
-let localDB;
 let listeners = [];
+let metaDB;
+let localDB;
 
 class Store {
-  constructor() {
+  constructor(metaDB) {
     if (!TESTING) this.registerServiceWorker();
-
-    localDB = new PouchDB('cushionDB');
+    
+    metaDB = metaDB;
+    localDB = new PouchDB(metaDB.localDB());
 
     utils.bindToChange(localDB, this.notifyListeners, this);
+
+    if (metaDB.remoteDB()) {
+      utils.bindToChange(localDB, swUtils.scheduleSyncPush);
+    }
     // this.bindToLocalDBChange(this.notifyListeners);
   }
 
@@ -41,11 +48,6 @@ class Store {
   //     },
   //   });
   // }
-
-  replicateToRemoteDB() {
-    this.bindToLocalDBChange(this.pushToRemoteDB);
-  }
-
   pushToRemoteDB(){
     this.getServiceWorker().then(sw => {
       this.postMessage('SCHEDULE_PUSH', {}, sw);
@@ -57,6 +59,15 @@ class Store {
       this.postMessage('SCHEDULE_PULL', {}, sw);
     });
   }
+
+  startContSyncingToRemoteDB() {
+
+  }
+
+  replicateToRemoteDB() {
+    this.bindToLocalDBChange(this.pushToRemoteDB);
+  }
+
 
   attachRemoteDB(remoteDb) {
     this.remoteDB = remoteDb;
@@ -163,20 +174,20 @@ class Store {
       .catch( err => console.log(err) );
   }
 
-  postMessage(id, payload, sw) {
-    return new Promise((res, rej) => {
-      const msgChannel = new MessageChannel();
-      msgChannel.port1.onmessage = (evt) => {
-        if (evt.data.error) {
-          rej(evt.data.error);
-        } else {
-          res(evt.data);
-        }
-      }
+  // postMessage(id, payload, sw) {
+  //   return new Promise((res, rej) => {
+  //     const msgChannel = new MessageChannel();
+  //     msgChannel.port1.onmessage = (evt) => {
+  //       if (evt.data.error) {
+  //         rej(evt.data.error);
+  //       } else {
+  //         res(evt.data);
+  //       }
+  //     }
 
-      sw.controller.postMessage({ id, payload }, [msgChannel.port2]);
-    });
-  }
+  //     sw.controller.postMessage({ id, payload }, [msgChannel.port2]);
+  //   });
+  // }
 
   registerServiceWorker() {
     if ('serviceWorker' in navigator) {
@@ -184,20 +195,7 @@ class Store {
     }
   }
 
-  getServiceWorker() {
-    if (navigator.serviceWorker.controller) {
-      return Promise.resolve(navigator.serviceWorker);
-    }
-
-    return new Promise((resolve) => {
-      function onControllerChange() {
-        navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
-        resolve(navigator.serviceWorker);
-      }
-
-      navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
-    });
-  }
+  
 }
 
 export default Store;
