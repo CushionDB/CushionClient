@@ -12,7 +12,6 @@ describe('Test sign in', () => {
       expect(res.name).toBe('foo')
     ) 
   });
-
 });
 
 describe('Get session information', () => {
@@ -31,4 +30,3 @@ describe('Change foo password', () => {
       .then( res => expect(res.ok).toBe(true) );
   });
 });
-

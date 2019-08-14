@@ -2,33 +2,45 @@ import PouchDB from 'pouchdb';
 import PouchDBFind from 'pouchdb-find';
 PouchDB.plugin(PouchDBFind);
 
+import * as envUtils from './utils/envUtils';
+import * as urls from './utils/urls';
+import urlB64ToUint8Array from './utils/64to8.js';
+
+const PRODUCTION = process.env.NODE_ENV === 'production';
+const TESTING = process.env.NODE_ENV === 'testing';
+
+const envVars = envUtils.getEnvVars();
+
+// private store properties
+let localDB;
+let listeners = [];
+
 class Store {
   constructor() {
-    this.registerServiceWorker();
-    this.localDB = new PouchDB('cushionDB');
-    this.listeners = [];
-    this.publicVapidKey = 'BCA04yoTGRbqfe__mD3jXmNxYWCKF2jcPY4Kbas7GqV3o7vS43kahAucdIQF_aFix1mCkkGQzRwqob53atFxHJg';
+    if (!TESTING) this.registerServiceWorker();
 
-    this.bindToLocalChange(this.notifyListeners);
+    localDB = new PouchDB('cushionDB');
+
+    this.bindToLocalDBChange(this.notifyListeners);
   }
 
   subscribeToNotifications() {
     const username = this.remoteDB.__opts.auth.username;
 
-    this.serviceWorkerReady().then(sw => {
+    this.getServiceWorker().then(sw => {
       sw.ready.then(reg => {
         reg.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: this.urlB64ToUint8Array(this.publicVapidKey),
+          applicationServerKey: urlB64ToUint8Array(envVars.publicVapid),
         }).then(subscription => {
-          console.log('[SUBSCRIPTION] ', subscription);
+
           const body = {
             username,
             subscription,
             device: navigator.platform
           };
 
-          fetch('http://localhost:3001/subscribe', {
+          fetch(urls.subscribeDeviceToPush(envVars.couchBaseURL), {
             method: 'POST',
             body: JSON.stringify(body),
             headers: {
@@ -55,33 +67,18 @@ class Store {
     });
   }
 
-  urlB64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
-      .replace(/\-/g, '+')
-      .replace(/_/g, '/');
-
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  }
-
   connectRemoteDB() {
-    this.bindToLocalChange(this.pushToRemoteDB);
+    this.bindToLocalDBChange(this.pushToRemoteDB);
   }
 
   pushToRemoteDB(){
-    this.serviceWorkerReady().then(sw => {
+    this.getServiceWorker().then(sw => {
       this.postMessage('SCHEDULE_PUSH', {}, sw);
     });
   }
 
   pullFromRemoteDB(){
-    this.serviceWorkerReady().then(sw => {
+    this.getServiceWorker().then(sw => {
       this.postMessage('SCHEDULE_PULL', {}, sw);
     });
   }
@@ -96,35 +93,35 @@ class Store {
   }
 
   notifyListeners() {
-    this.listeners.forEach(l => l());
+    listeners.forEach(l => l());
   }
 
-  bindToLocalChange(cb) {
-    this.localDB.changes({
+  bindToLocalDBChange(cb) {
+    localDB.changes({
       live: true,
       since: 'now'
     }).on('change', cb.bind(this));
   }
 
   subscribe(listener) {
-    this.listeners = [...this.listeners, listener];
+    listeners = [...listeners, listener];
 
     return () => {
-      this.listeners = this.listeners.filter(l => l !== listener);
+      listeners = listeners.filter(l => l !== listener);
     }
   }
 
   set(document) {
-    return this.localDB.post(document)
+    return localDB.post(document)
       .then(doc => doc.id)
       .catch(e => console.log(e));
   }
 
   find(attribute, value){
-    return this.localDB.createIndex({
+    return localDB.createIndex({
       index: {fields: [attribute]}
     }).then( res => {
-      return this.localDB.find({
+      return localDB.find({
         selector: {
           [attribute]: value
         }
@@ -136,7 +133,7 @@ class Store {
   }
 
   get(id) {
-    return this.localDB.get(id)
+    return localDB.get(id)
       .then(doc => {
         const { _rev, ...docWithoutRev } = doc;
 
@@ -145,10 +142,10 @@ class Store {
   }
 
   update(id, attrs) {
-    return this.localDB.get(id)
+    return localDB.get(id)
       .then(doc => {
         // console.log(doc);
-        return  this.localDB.put({
+        return  localDB.put({
           ...doc,
           ...attrs
         }).then(doc => doc.id)
@@ -157,17 +154,17 @@ class Store {
   }
 
   delete(id) {
-    return this.localDB.get(id).then(doc => {
+    return localDB.get(id).then(doc => {
       doc._deleted = true;
 
-      return  this.localDB.put(doc)
+      return  localDB.put(doc)
         .then(doc => doc.id)
         .catch(e => console.log(e));
     });
   }
 
   getAll() {
-    return this.localDB.allDocs({
+    return localDB.allDocs({
       'include_docs': true,
     }).then(docs => {
       return docs.rows.map(doc => {
@@ -179,14 +176,14 @@ class Store {
   }
 
   deleteAll() {
-    return this.localDB.allDocs().then(docs => {
+    return localDB.allDocs().then(docs => {
       docs.rows.forEach(doc => doc._deleted = true);
-      return this.localDB.bulkDocs(docs.rows)
+      return localDB.bulkDocs(docs.rows)
     });
   }
 
   destroy(){
-    return this.localDB.destroy()
+    return localDB.destroy()
       .then( resp => resp)
       .catch( err => console.log(err) );
   }
@@ -212,7 +209,7 @@ class Store {
     }
   }
 
-  serviceWorkerReady() {
+  getServiceWorker() {
     if (navigator.serviceWorker.controller) {
       return Promise.resolve(navigator.serviceWorker);
     }

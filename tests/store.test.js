@@ -6,7 +6,6 @@ store.localDB = new PouchDB('testDB');
 store.deleteAll();
 
 describe('starting an unregistered new cushion DB instance', () => {
-
   test('starts with default pouchDB if name not provided', () => {
     expect(store.localDB.name).toBe('testDB');
   });
@@ -14,7 +13,6 @@ describe('starting an unregistered new cushion DB instance', () => {
   test('starts with an empty listeners list', () => {
     expect(store.listeners.length).toEqual(0);
   });
-
 });
 
 describe('Store functionality', () => {
@@ -98,6 +96,3 @@ describe('Store functionality', () => {
     });
   });
 });
-
-
-
