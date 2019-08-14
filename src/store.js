@@ -4,6 +4,8 @@ PouchDB.plugin(PouchDBFind);
 
 import * as envUtils from './utils/envUtils';
 import * as urls from './utils/urls';
+import * as fetchUtils from './utils/fetchUtils';
+import * as utils from './utils/storeUtils';
 import urlB64ToUint8Array from './utils/64to8.js';
 
 const PRODUCTION = process.env.NODE_ENV === 'production';
@@ -21,53 +23,26 @@ class Store {
 
     localDB = new PouchDB('cushionDB');
 
-    this.bindToLocalDBChange(this.notifyListeners);
+    utils.bindToChange(localDB, this.notifyListeners, this);
+    // this.bindToLocalDBChange(this.notifyListeners);
   }
 
-  subscribeToNotifications() {
-    const username = this.remoteDB.__opts.auth.username;
+  // triggerPushNotification() {
+  //   const data = {
+  //     username: this.remoteDB.__opts.auth.username,
+  //     device: navigator.platform
+  //   };
 
-    this.getServiceWorker().then(sw => {
-      sw.ready.then(reg => {
-        reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlB64ToUint8Array(envVars.publicVapid),
-        }).then(subscription => {
+  //   fetch('http://localhost:3001/triggerSync', {
+  //     method: 'POST',
+  //     body: JSON.stringify(data),
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //     },
+  //   });
+  // }
 
-          const body = {
-            username,
-            subscription,
-            device: navigator.platform
-          };
-
-          fetch(urls.subscribeDeviceToPush(envVars.couchBaseURL), {
-            method: 'POST',
-            body: JSON.stringify(body),
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
-        });
-      })
-    });
-  }
-
-  triggerPushNotification() {
-    const data = {
-      username: this.remoteDB.__opts.auth.username,
-      device: navigator.platform
-    };
-
-    fetch('http://localhost:3001/triggerSync', {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-  }
-
-  connectRemoteDB() {
+  replicateToRemoteDB() {
     this.bindToLocalDBChange(this.pushToRemoteDB);
   }
 
@@ -85,7 +60,7 @@ class Store {
 
   attachRemoteDB(remoteDb) {
     this.remoteDB = remoteDb;
-    this.connectRemoteDB();
+    this.replicateToRemoteDB();
   }
 
   detachRemoteDB(){

@@ -111,8 +111,17 @@ cushionWorker.addSyncEvent('REPLICATE_TO_SERVER', () => {
   .then(doc => {
     const localDBName = doc.cushionLocalDBName;
     const remoteDBAddress = doc.cushionRemoteDBAddress;
+    const subscribedToPush = doc.subscribedToPush;
 
-    return cushionWorker.pouchSync(remoteDBAddress, localDBName);
+    return cushionWorker.pouchSync(remoteDBAddress, localDBName)
+
+    .then(() => {
+      if (subscribedToPush) {
+        // TRIGGER PUSH NOTIFICATION
+      }
+
+      return Promise.resolve();
+    });
   })
 
   .catch(err => console.log(err))

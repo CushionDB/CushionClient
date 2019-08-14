@@ -20,6 +20,42 @@ class Account {
       })
   }
 
+  subscribeToNotifications() {
+    this.isSignedIn()
+
+    .then(() =>
+      this.getServiceWorker().then(sw => {
+        sw.ready.then(reg => {
+          reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlB64ToUint8Array(envVars.publicVapid),
+          }).then(subscription => {
+
+            fetch(
+              urls.subscribeDeviceToPush(envVars.couchBaseURL), 
+              fetchUtils.getFetchOpts({
+                method: 'POST',
+                data: {
+                  username: this.getUserName(),
+                  subscription,
+                  device: navigator.platform
+                }
+              })
+            );
+          });
+        })
+      })
+    )
+
+    .catch(() => {
+      throw new Error('User must be signed in to subscribe')
+    });
+  }
+
+  getUserName() {
+    return this.remoteDB.__opts.auth.username;
+  }
+
   remoteDbName(username){
     const hexUsername = Buffer.from(username, 'utf8').toString('hex');
     this.remoteDBAddress = `${TEMP_CONFIG.remoteBaseURL}cushion_${hexUsername}`;
