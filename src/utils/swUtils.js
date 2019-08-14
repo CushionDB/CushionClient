@@ -38,3 +38,9 @@ export const scheduleSyncPull = () => {
     postMessage('SCHEDULE_PULL', {}, sw);
   });
 }
+
+export registerServiceWorker() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('../../sw.js');
+  }
+}

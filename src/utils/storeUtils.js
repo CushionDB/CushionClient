@@ -1,10 +1,13 @@
-export const bindToChange = (db, callback, context) => {
+export const bindToChange = (db, callback) => {
  db.changes({
     live: true,
     since: 'now'
-  }).on('change', callback.bind(context));
+  }).on('change', callback);
 }
 
+export const notifyListeners = (listeners) => {
+  listeners.forEach(l => l());
+}
 
 // export default {
 // 	bindToChange,
