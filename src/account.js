@@ -15,7 +15,20 @@ let remoteDB;
 const getPassword = (remoteDB) => {
   if (!remoteDB) return undefined;
   return remoteDB.__opts.auth.password;
-}  
+}
+
+const createRemoteCouchDBHandle = (remoteName) => {
+  return new PouchDB(
+    remoteName,
+    {
+      skip_setup: true 
+      // auth: {
+      //   username,
+      //   password
+      // }
+    }
+  );
+}
 
 class Account {
   constructor(metaDB, onSignInCallback) {
@@ -92,47 +105,48 @@ class Account {
     });
   }
 
-  getRemoteDB(username, password) {
-    if(!this.remoteDBAddress) this.remoteDbName(username);
-    this.remoteDB = new PouchDB(this.remoteDBAddress, {skip_setup: true, auth: {username, password}});
-    this.store.attachRemoteDB(this.remoteDB);
-  }
-
-
   signIn({ username, password }) {
-    this.getRemoteDB(username, password);
-    // console.log(username, password);
-    // console.log(this.remoteDB.name);
+    if (!username || !password) {
+      throw new Error('username and password are required.');
+    }
 
-    return this.remoteDB.logIn(username, password)
+    const couchUserDBName = dbUtils.createCouchUserDBName(couchBaseURL, username)
+    const fakeRemoteDB = createRemoteCouchDBHandle(couchUserDBName)
+
+    return fakeRemoteDB.logIn(username, password)
+      
       .then(res => {
-        const cushionMeta = new PouchDB('cushionMeta');
-        const cushionDBDoc = {
-          _id: 'cushionMeta',
-          cushionLocalDBName: this.store.localDB.name,
-          cushionRemoteDBAddress: this.remoteDB.name
-        };
 
-        // console.log(res);
+        metaDB.startMetaDB(couchUserDBName)
 
-        cushionMeta.put(cushionDBDoc)
-          .then(res => {
-            this.store.pullFromRemoteDB();
-            this.store.pushToRemoteDB();
-          });
+        .then(_ => {
+          this.onSignInCallback();
+          return 'User signed successful'
+        }).catch(err => console.log(err));
+      })
 
-        return res;
-      }).catch(err => {
-        console.log("[SIGN-IN ERROR] ", err);
+      .catch(err => {
+        if (err.name === 'unauthorized' || err.name === 'forbidden') {
+          throw new Error('User name or password incorrect');
+        }
+
+        throw new Error('Something went wrong');
       });
   }
+
+  // getRemoteDB(username, password) {
+  //   if(!this.remoteDBAddress) this.remoteDbName(username);
+  //   this.remoteDB = new PouchDB(this.remoteDBAddress, {skip_setup: true, auth: {username, password}});
+  //   this.store.attachRemoteDB(this.remoteDB);
+  // }
 
   signOut() {
     if (!this.isSignedIn()) throw new Error('User is not signed in');
 
     this.remoteDB.logOut()
+    
       .then(res => {
-        if (!res.ok) throw new Error('Sign out failed.');
+        if (!res.ok) throw new Error('Sign out failed');
 
         this.store.detachRemoteDB();
         this.remoteDB = null;

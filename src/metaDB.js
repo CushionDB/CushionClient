@@ -34,6 +34,17 @@ class MetaDB {
  			return Promise.resolve();
  		});
  	}
+
+ 	startMetaDB(remoteAddress) {
+    const cushionDBDoc = {
+    	_id: 'cushionMeta',
+    	cushionLocalDBName: localDB,
+    	cushionRemoteDBAddress: remoteAddress
+  	};
+
+ 		new PouchDB('cushionMeta').put(cushionDBDoc);
+ 	}
+
 }
 
 export default MetaDB;

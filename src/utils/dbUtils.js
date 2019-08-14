@@ -5,7 +5,7 @@ export const bindToChange = (db, callback) => {
   }).on('change', callback);
 }
 
-export const createCouchUserDbName = (couchBaseURL, username) => {
+export const createCouchUserDBName = (couchBaseURL, username) => {
   const hexUsername = Buffer.from(username, 'utf8').toString('hex');
 
   return `${couchBaseURL}cushion_${hexUsername}`;

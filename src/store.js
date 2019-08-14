@@ -3,7 +3,7 @@ import PouchDBFind from 'pouchdb-find';
 PouchDB.plugin(PouchDBFind);
 
 import * as dbUtils from './utils/dbUtils';
-import { scheduleSyncPush } from './utils/swUtils';
+import { scheduleSyncPush, scheduleSyncPull } from './utils/swUtils';
 import urlB64ToUint8Array from './utils/64to8.js';
 
 // private store properties
@@ -12,7 +12,7 @@ let metaDB;
 let localDB;
 
 const startContReplicationToRemoteDB = (localDB) => {
-  dbUtils.bindToChange(localDB, swUtils.scheduleSyncPush);
+  dbUtils.bindToChange(localDB, scheduleSyncPush);
 }
 
 const notifyListeners = (listeners) => {
@@ -33,6 +33,7 @@ class Store {
   }
 
   userSignedIn() {
+    scheduleSyncPull();
     startContReplicationToRemoteDB(localDB);
   }
 
