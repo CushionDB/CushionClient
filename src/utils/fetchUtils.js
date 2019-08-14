@@ -2,7 +2,8 @@ export const getFetchOpts = ({ method, data }) => {
 	let fetchOpts =  {
 		method,
 		headers: {
-			'Content-Type': 'application/json'
+			'Content-Type': 'application/json',
+			Accept: 'application/json',
 		}
 	}
 

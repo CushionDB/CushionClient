@@ -1,68 +1,95 @@
 import PouchDB from 'pouchdb';
 import PouchAuth from 'pouchdb-authentication';
+import * as envUtils from './utils/envUtils';
+import * as urls from './utils/urls';
+import * as fetchUtils from './utils/fetchUtils';
+import * as dbUtils from './utils/dbUtils';
 
 PouchDB.plugin(PouchAuth);
 
-const TEMP_CONFIG = {
-  remoteBaseURL: 'http://localhost:5984/',
-}
+const envVars = envUtils.getEnvVars();
+
+let metaDB;
+let remoteDB;
+
+const getPassword = (remoteDB) => {
+  if (!remoteDB) return undefined;
+  return remoteDB.__opts.auth.password;
+}  
 
 class Account {
-  constructor(store) {
-    this.store = store;
-    const cushionMeta = new PouchDB('cushionMeta');
-    cushionMeta.get('cushionMeta')
-      .then(res => {
-        this.remoteDB = new PouchDB(res.cushionRemoteDBAddress);
-        this.store.attachRemoteDB(this.remoteDB);
-      }).catch(err => {
-        this.remoteDB = null;
-      })
-  }
+  constructor(metaDB, onSignInCallback) {
+    this.onSignInCallback = onSignInCallback;
 
-  subscribeToNotifications() {
-    this.isSignedIn()
+    metaDB = metaDB;
 
-    .then(() =>
-      this.getServiceWorker().then(sw => {
-        sw.ready.then(reg => {
-          reg.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlB64ToUint8Array(envVars.publicVapid),
-          }).then(subscription => {
+    if (metaDB.remoteDB()) {
+      remoteDB = new PouchDB(metaDB.remoteDB(), {
+        skip_setup: true
+      });
+    }
 
-            fetch(
-              urls.subscribeDeviceToPush(envVars.couchBaseURL), 
-              fetchUtils.getFetchOpts({
-                method: 'POST',
-                data: {
-                  username: this.getUserName(),
-                  subscription,
-                  device: navigator.platform
-                }
-              })
-            );
-          });
-        })
-      })
-    )
-
-    .catch(() => {
-      throw new Error('User must be signed in to subscribe')
-    });
+    // const cushionMeta = new PouchDB('cushionMeta');
+    // cushionMeta.get('cushionMeta')
+    //   .then(res => {
+    //     this.remoteDB = new PouchDB(res.cushionRemoteDBAddress);
+    //     this.store.attachRemoteDB(this.remoteDB);
+    //   }).catch(err => {
+    //     this.remoteDB = null;
+    //   })
   }
 
   getUserName() {
-    return this.remoteDB.__opts.auth.username;
+    if (!this.isSignedIn) return undefined;
+
+    return remoteDB.__opts.auth.username;
   }
 
-  remoteDbName(username){
-    const hexUsername = Buffer.from(username, 'utf8').toString('hex');
-    this.remoteDBAddress = `${TEMP_CONFIG.remoteBaseURL}cushion_${hexUsername}`;
+  // getClassName(){
+  //   return this.constructor.name;
+  // }
+
+  isSignedIn() {
+    dbUtils.getSession(remoteDB).then(res => {
+      return !!res;
+    })
   }
 
-  getClassName(){
-  return this.constructor.name;
+  signUp({ username, password }) {
+    if (!username || !password) {
+      throw new Error('username and password are required.');
+    }
+
+    return fetch(
+      urls.signup(envVars.couchBaseURL),
+      fetchUtils.getFetchOpts({
+        method: 'POST',
+        data: {
+          username,
+          password
+        }
+      })
+    )
+
+    .then(response => {
+      if (response.ok) {
+        return {
+          status: 'success',
+          userID: response.id
+        }
+      }
+
+      switch (response.status) {
+        case 401:
+          throw new Error('CouchDB admin or password incorrect');
+        case 409:
+          throw new Error('Username is taken');
+        default:
+          throw new Error('Something went wrong');
+      }
+    }).catch(err => {
+      console.log(err);
+    });
   }
 
   getRemoteDB(username, password) {
@@ -71,52 +98,6 @@ class Account {
     this.store.attachRemoteDB(this.remoteDB);
   }
 
-  getUserName(){
-    if (!this.remoteDB) return false;
-    return this.remoteDB.__opts.auth.username;
-  }
-
-  getPassword(){
-    if (!this.remoteDB) return false;
-    return this.remoteDB.__opts.auth.password;
-  }
-
-  isSignedIn(){
-    const cushionMeta = new PouchDB('cushionMeta');
-    return cushionMeta.get('cushionMeta')
-      .then(res => {
-        // console.log(res);
-        return true;
-      }).catch(err => {
-        console.log(err);
-      });
-  }
-
-  signUp({ username, password }) {
-    if (!username || !password) {
-      throw new Error('username and password are required.');
-    }
-
-    return fetch('http://localhost:3001/signup', {
-      method: 'POST',
-      body: JSON.stringify({
-        username,
-        password
-      }),
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      }
-    }).then(response => {
-
-      // console.log('[RESPONSE] ', response);
-      this.getRemoteDB(username, password)
-
-      return response;
-    }).catch(error => {
-      console.log('[ERROR] ', error);
-    });
-  }
 
   signIn({ username, password }) {
     this.getRemoteDB(username, password);
@@ -164,15 +145,17 @@ class Account {
   }
 
   getSession() {
-    if (this.remoteDB) {
-      return this.remoteDB.getSession().then(res => {
-        // console.log("[GET SESSION RESPONSE]", res);
-        return res;
-      }).catch(err => {
-        console.log("[GET SESSION ERROR]", err);
-      });
-    }
-    // TODO: If user is not signed in
+    if (!remoteDB) throw new Error('User is not signed in');
+
+    return remoteDB.getSession().then(res => {
+      if (!res.userCtx.name) {
+        return null;
+      }
+
+      return res;
+    }).catch(err => {
+      console.log(err);
+    });
   }
 
   getUserDoc(username){
@@ -232,6 +215,37 @@ class Account {
     });
   }
 
+  subscribeToNotifications() {
+    this.isSignedIn()
+
+    .then(() =>
+      this.getServiceWorker().then(sw => {
+        sw.ready.then(reg => {
+          reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlB64ToUint8Array(envVars.publicVapid),
+          }).then(subscription => {
+
+            fetch(
+              urls.subscribeDeviceToPush(envVars.couchBaseURL), 
+              fetchUtils.getFetchOpts({
+                method: 'POST',
+                data: {
+                  username: this.getUserName(),
+                  subscription,
+                  device: navigator.platform
+                }
+              })
+            );
+          });
+        })
+      })
+    )
+
+    .catch(() => {
+      throw new Error('User must be signed in to subscribe')
+    });
+  }
 }
 
 export default Account;

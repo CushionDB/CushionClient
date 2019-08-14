@@ -12,7 +12,7 @@ class Cushion {
 
   	metaDB.ready.then(() => {
 			this.store = new Store(metaDB);
-	    this.account = new Account(metaDB, this.store);
+	    this.account = new Account(metaDB, this.store.userSignedIn);
   	});
   }
 };

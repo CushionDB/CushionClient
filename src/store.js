@@ -2,7 +2,7 @@ import PouchDB from 'pouchdb';
 import PouchDBFind from 'pouchdb-find';
 PouchDB.plugin(PouchDBFind);
 
-import * as utils from './utils/storeUtils';
+import * as dbUtils from './utils/dbUtils';
 import { scheduleSyncPush } from './utils/swUtils';
 import urlB64ToUint8Array from './utils/64to8.js';
 
@@ -12,7 +12,11 @@ let metaDB;
 let localDB;
 
 const startContReplicationToRemoteDB = (localDB) => {
-  utils.bindToChange(localDB, swUtils.scheduleSyncPush);
+  dbUtils.bindToChange(localDB, swUtils.scheduleSyncPush);
+}
+
+const notifyListeners = (listeners) => {
+  listeners.forEach(l => l()); 
 }
 
 class Store {
@@ -20,7 +24,7 @@ class Store {
     metaDB = metaDB;
     localDB = new PouchDB(metaDB.localDB());
 
-    utils.bindToChange(localDB, utils.notifyListeners(listeners), this);
+    dbUtils.bindToChange(localDB, notifyListeners(listeners), this);
 
     if (metaDB.remoteDB()) {
       startContReplicationToRemoteDB(localDB);
