@@ -58,7 +58,7 @@ class MetaDB {
  		// })
  	}
 
- 	destroyMetaDB() {
+ 	destroy() {
 		return new PouchDB('cushionMeta').destroy();
  	}
 }

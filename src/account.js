@@ -3,6 +3,7 @@ import PouchAuth from 'pouchdb-authentication';
 // import * as envUtils from './utils/envUtils';
 import * as urls from './utils/urls';
 import * as fetchUtils from './utils/fetchUtils';
+import * as swUtils from './utils/swUtils';
 import * as dbUtils from './utils/dbUtils';
 
 PouchDB.plugin(PouchAuth);
@@ -218,7 +219,7 @@ class Account {
   changePassword(username, newPassword){
     this.isSignedIn().then(res => {
       if (!res) {
-        throw new Error('User is not signed in');
+        throw new Error('Must be signed in to do that');
       }
 
       return dbAuth.remoteDB.changePassword(username, newPassword)
@@ -237,13 +238,29 @@ class Account {
     });
   }
 
-  destroy(username){
-    this.remoteDB.deleteUser(username)
-      .then( res => {
-        this.remoteDB = null;
-        console.log(res); })
-      .catch( err => console.log(err) );
+  destroy(username) {
+    this.isSignedIn().then(res => {
+      if (!res) {
+        throw new Error('Must be signed in to do that');
+      }
+
+      return dbAuth.destroyUser(username)
+
+        .then(res => {
+          if (res.ok) {
+            return {status: 'success'};
+          } else {
+            throw new Error({err: 'Something went wrong', res});
+          }
+        })
+
+        .catch(err => {
+          throw new Error(err);
+        });
+    });
   }
+
+
 
   changeUsername({curUsername, password, newUsername}){
     let url = `${TEMP_CONFIG.remoteBaseURL}update`;
@@ -262,50 +279,37 @@ class Account {
     request(url, options);
   }
 
-  request(url, options) {
-    return fetch(url, {
-      method: options.method,
-      body: JSON.stringify(options.data),
-      credentials: options.credentials,
-      headers: options.headers,
-    }).then(response => {
-      // console.log('[RESPONSE] ', response);
-      return response;
-      // return response.status ;
-    }).catch(error => {
-      console.log('[ERROR] ', error);
-    });
-  }
-
   subscribeToNotifications() {
     this.isSignedIn()
 
-    .then(res =>
-      this.getServiceWorker().then(sw => {
-        sw.ready.then(reg => {
-          reg.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlB64ToUint8Array(envVars.publicVapid),
-          }).then(subscription => {
+    .then(res => {
+      if (!res) {
+        throw new Error('Must be signed in to do that');
+      }
 
+      swUtils.subscribeDeviceToNotifications()
+
+      .then(subscription => {
+        return this.getUserName()
+
+          .then(username => {
             fetch(
-              urls.subscribeDeviceToPush(envVars.couchBaseURL), 
+              urls.subscribeDeviceToPush(), 
               fetchUtils.getFetchOpts({
                 method: 'POST',
                 data: {
-                  username: this.getUserName(),
+                  username,
                   subscription,
                   device: navigator.platform
                 }
               })
-            );
+            ).then(_ => ({status: 'success'}));
           });
-        })
       })
-    )
 
-    .catch(() => {
-      throw new Error('User must be signed in to subscribe')
+      .catch(err => {
+        throw new Error(err);
+      });
     });
   }
 }

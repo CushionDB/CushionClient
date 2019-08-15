@@ -101,7 +101,7 @@ class DatabaseAuth {
 	          if (!res.ok) throw new Error('Sign out failed');
 
 	          this.remoteDB = null;
-	          return metaDB.destroyMetaDB()
+	          return metaDB.destroy()
 
 	            .then(_ => {
 	              return true;
@@ -121,6 +121,22 @@ class DatabaseAuth {
 	  		password
 	  	}
 		});
+	}
+
+	destroyUser(username) {
+    return this.remoteDB.deleteUser(username)
+      
+      .then(res => {
+        this.remoteDB = null;
+        return this.localDB.destroy()
+      })
+      
+      .then(res => {
+        return this.metaDB.destroy();
+      })
+
+      .catch( err => console.log(err) );
+
 	}
 
 	static createCouchUserDBName(couchBaseURL, username) {

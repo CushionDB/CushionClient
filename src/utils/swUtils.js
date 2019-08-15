@@ -1,3 +1,7 @@
+import urlB64ToUint8Array from './64to8';
+
+const CONFIG = require('../../.cushionConfig.json');
+
 const getServiceWorker = () => {
 	if (navigator.serviceWorker.controller) {
 	  return Promise.resolve(navigator.serviceWorker);
@@ -27,6 +31,18 @@ const postMessage = (id, payload, sw) => {
     sw.controller.postMessage({ id, payload }, [msgChannel.port2]);
   });
 }
+
+export const subscribeDeviceToNotifications = () => {
+  return getServiceWorker().then(sw => {
+    return sw.ready.then(reg => {
+      return reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlB64ToUint8Array(CONFIG.publicVapid),
+      });
+    });
+  });
+}
+
 export const scheduleSyncPush = () => {
   getServiceWorker().then(sw => {
     postMessage('SCHEDULE_PUSH', {}, sw);
