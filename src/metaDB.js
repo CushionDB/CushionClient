@@ -2,6 +2,7 @@ import PouchDB from 'pouchdb';
 
 let remoteDB;
 let localDB;
+let metaDB;
 
 class MetaDB {
 	constructor() {
@@ -42,9 +43,13 @@ class MetaDB {
     	cushionRemoteDBAddress: remoteAddress
   	};
 
- 		new PouchDB('cushionMeta').put(cushionDBDoc);
+ 		metaDB = new PouchDB('cushionMeta');
+ 		return metaDB.put(cushionDBDoc);
  	}
 
+ 	destroyMetaDB() {
+		return new PouchDB('cushionMeta').destroy();
+ 	}
 }
 
 export default MetaDB;

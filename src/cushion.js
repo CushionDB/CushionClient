@@ -4,9 +4,11 @@ import MetaDB from './metaDB';
 
 import { registerServiceWorker } from './utils/swUtils';
 
+const TESTING = process.env.NODE_ENV === 'testing';
+
 class Cushion {
   constructor() {
-  	if (!TESTING) swUtils.registerServiceWorker();
+  	if (!TESTING) registerServiceWorker();
 
   	const metaDB = new MetaDB();
 

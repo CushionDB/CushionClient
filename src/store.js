@@ -15,7 +15,7 @@ const startContReplicationToRemoteDB = (localDB) => {
   dbUtils.bindToChange(localDB, scheduleSyncPush);
 }
 
-const notifyListeners = (listeners) => {
+const notifyListeners = () => {
   listeners.forEach(l => l()); 
 }
 
@@ -24,7 +24,7 @@ class Store {
     metaDB = metaDB;
     localDB = new PouchDB(metaDB.localDB());
 
-    dbUtils.bindToChange(localDB, notifyListeners(listeners), this);
+    dbUtils.bindToChange(localDB, notifyListeners);
 
     if (metaDB.remoteDB()) {
       startContReplicationToRemoteDB(localDB);

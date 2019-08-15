@@ -8,10 +8,10 @@ export const bindToChange = (db, callback) => {
 export const createCouchUserDBName = (couchBaseURL, username) => {
   const hexUsername = Buffer.from(username, 'utf8').toString('hex');
 
-  return `${couchBaseURL}cushion_${hexUsername}`;
+  return `${couchBaseURL}/cushion_${hexUsername}`;
 }
 
-export const getSession(remoteDB) {
+export const getSession = (remoteDB) => {
   if (!remoteDB) Promise.reject('User is not signed in');
 
   return remoteDB.getSession().then(res => {

@@ -17,24 +17,24 @@ const getPassword = (remoteDB) => {
   return remoteDB.__opts.auth.password;
 }
 
-const createRemoteCouchDBHandle = (remoteName) => {
+const createRemoteCouchDBHandle = (remoteName, username, password) => {
   return new PouchDB(
     remoteName,
     {
-      skip_setup: true 
-      // auth: {
-      //   username,
-      //   password
-      // }
+      skip_setup: true,
+      auth: {
+        username,
+        password
+      }
     }
   );
 }
 
 class Account {
-  constructor(metaDB, onSignInCallback) {
+  constructor(meta, onSignInCallback) {
     this.onSignInCallback = onSignInCallback;
 
-    metaDB = metaDB;
+    metaDB = meta;
 
     if (metaDB.remoteDB()) {
       remoteDB = new PouchDB(metaDB.remoteDB(), {
@@ -53,9 +53,11 @@ class Account {
   }
 
   getUserName() {
-    if (!this.isSignedIn) return undefined;
+    this.isSignedIn().then(res => {
+      if (!res) return undefined;
 
-    return remoteDB.__opts.auth.username;
+      return remoteDB.__opts.auth.username;
+    });
   }
 
   // getClassName(){
@@ -63,9 +65,11 @@ class Account {
   // }
 
   isSignedIn() {
-    dbUtils.getSession(remoteDB).then(res => {
+    if (!remoteDB) return Promise.resolve(false);
+
+    return dbUtils.getSession(remoteDB).then(res => {
       return !!res;
-    })
+    });
   }
 
   signUp({ username, password }) {
@@ -74,7 +78,7 @@ class Account {
     }
 
     return fetch(
-      urls.signup(envVars.couchBaseURL),
+      urls.signup(envVars.cushionServerBaseURL),
       fetchUtils.getFetchOpts({
         method: 'POST',
         data: {
@@ -86,10 +90,7 @@ class Account {
 
     .then(response => {
       if (response.ok) {
-        return {
-          status: 'success',
-          userID: response.id
-        }
+        return {status: 'success'}
       }
 
       switch (response.status) {
@@ -101,7 +102,7 @@ class Account {
           throw new Error('Something went wrong');
       }
     }).catch(err => {
-      console.log(err);
+      throw new Error(err);
     });
   }
 
@@ -110,19 +111,22 @@ class Account {
       throw new Error('username and password are required.');
     }
 
-    const couchUserDBName = dbUtils.createCouchUserDBName(couchBaseURL, username)
-    const fakeRemoteDB = createRemoteCouchDBHandle(couchUserDBName)
+    const couchUserDBName = dbUtils.createCouchUserDBName(envVars.couchBaseURL, username)
+    const fakeRemoteDB = createRemoteCouchDBHandle(couchUserDBName, username, password)
 
     return fakeRemoteDB.logIn(username, password)
       
       .then(res => {
 
-        metaDB.startMetaDB(couchUserDBName)
+        return metaDB.startMetaDB(couchUserDBName)
 
-        .then(_ => {
-          this.onSignInCallback();
-          return 'User signed successful'
-        }).catch(err => console.log(err));
+        .then(res => {
+          if (res.ok) {
+            remoteDB = createRemoteCouchDBHandle(couchUserDBName, username, password);
+            this.onSignInCallback();
+            return {status: 'success'};
+          }
+        })
       })
 
       .catch(err => {
@@ -130,7 +134,9 @@ class Account {
           throw new Error('User name or password incorrect');
         }
 
-        throw new Error('Something went wrong');
+        console.log(err);
+
+        throw new Error(err);
       });
   }
 
@@ -141,21 +147,30 @@ class Account {
   // }
 
   signOut() {
-    if (!this.isSignedIn()) throw new Error('User is not signed in');
+    return this.isSignedIn()
 
-    this.remoteDB.logOut()
-    
       .then(res => {
-        if (!res.ok) throw new Error('Sign out failed');
+        if (!res) throw new Error('User is not signed in');
 
-        this.store.detachRemoteDB();
-        this.remoteDB = null;
-        new PouchDB('cushionMeta').destroy()
+        return remoteDB.logOut()
+
           .then(res => {
-          }).catch(err => {
-            console.log(err);
-          });
-      });
+            if (!res.ok) throw new Error('Sign out failed');
+
+            remoteDB = null;
+            return metaDB.destroyMetaDB().then(_ => {
+              return {status: 'success'};
+            }).catch(err => console.log(err));
+          })
+
+          .catch(err => {
+            throw new Error(err);
+          })
+      })
+
+      .catch(err => {
+        throw new Error(err);
+      })
   }
 
   getSession() {
@@ -168,7 +183,7 @@ class Account {
 
       return res;
     }).catch(err => {
-      console.log(err);
+      throw new Error(err);
     });
   }
 
