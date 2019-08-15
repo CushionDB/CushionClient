@@ -1,15 +1,16 @@
 import PouchDB from 'pouchdb';
 import PouchAuth from 'pouchdb-authentication';
-import * as envUtils from './utils/envUtils';
+// import * as envUtils from './utils/envUtils';
 import * as urls from './utils/urls';
 import * as fetchUtils from './utils/fetchUtils';
 import * as dbUtils from './utils/dbUtils';
 
 PouchDB.plugin(PouchAuth);
 
-const envVars = envUtils.getEnvVars();
+// const envVars = envUtils.getEnvVars();
 
 let metaDB;
+let dbAuth;
 let remoteDB;
 
 const getPassword = (remoteDB) => {
@@ -31,16 +32,17 @@ const createRemoteCouchDBHandle = (remoteName, username, password) => {
 }
 
 class Account {
-  constructor(meta, onSignInCallback) {
-    this.onSignInCallback = onSignInCallback;
+  constructor(dataAuth) {
+    // this.onSignInCallback = onSignInCallback;
 
-    metaDB = meta;
 
-    if (metaDB.remoteDB()) {
-      remoteDB = new PouchDB(metaDB.remoteDB(), {
-        skip_setup: true
-      });
-    }
+    dbAuth = dataAuth;
+
+    // if (metaDB.remoteDB()) {
+    //   remoteDB = new PouchDB(metaDB.remoteDB(), {
+    //     skip_setup: true
+    //   });
+    // }
 
     // const cushionMeta = new PouchDB('cushionMeta');
     // cushionMeta.get('cushionMeta')
@@ -56,7 +58,7 @@ class Account {
     this.isSignedIn().then(res => {
       if (!res) return undefined;
 
-      return remoteDB.__opts.auth.username;
+      return dbAuth.remoteDB.__opts.auth.username;
     });
   }
 
@@ -65,11 +67,12 @@ class Account {
   // }
 
   isSignedIn() {
-    if (!remoteDB) return Promise.resolve(false);
+    return dbAuth.isSignedIn();
+    // if (!remoteDB) return Promise.resolve(false);
 
-    return dbUtils.getSession(remoteDB).then(res => {
-      return !!res;
-    });
+    // return dbUtils.getSession(remoteDB).then(res => {
+    //   return !!res;
+    // });
   }
 
   signUp({ username, password }) {
@@ -111,33 +114,39 @@ class Account {
       throw new Error('username and password are required.');
     }
 
-    const couchUserDBName = dbUtils.createCouchUserDBName(envVars.couchBaseURL, username)
-    const fakeRemoteDB = createRemoteCouchDBHandle(couchUserDBName, username, password)
+    return dbAuth.signIn(username, password).then(res => {status: 'success'})
 
-    return fakeRemoteDB.logIn(username, password)
+    .catch(err => {
+      throw new Error(err);
+    });
+
+    // const couchUserDBName = dbUtils.createCouchUserDBName(envVars.couchBaseURL, username)
+    // const fakeRemoteDB = createRemoteCouchDBHandle(couchUserDBName, username, password)
+
+    // return fakeRemoteDB.logIn(username, password)
       
-      .then(res => {
+    //   .then(res => {
 
-        return metaDB.startMetaDB(couchUserDBName)
+    //     return metaDB.startMetaDB(couchUserDBName)
 
-        .then(res => {
-          if (res.ok) {
-            remoteDB = createRemoteCouchDBHandle(couchUserDBName, username, password);
-            this.onSignInCallback();
-            return {status: 'success'};
-          }
-        })
-      })
+    //     .then(res => {
+    //       if (res.ok) {
+    //         remoteDB = createRemoteCouchDBHandle(couchUserDBName, username, password);
+    //         this.onSignInCallback();
+    //         return {status: 'success'};
+    //       }
+    //     })
+    //   })
 
-      .catch(err => {
-        if (err.name === 'unauthorized' || err.name === 'forbidden') {
-          throw new Error('User name or password incorrect');
-        }
+    //   .catch(err => {
+    //     if (err.name === 'unauthorized' || err.name === 'forbidden') {
+    //       throw new Error('User name or password incorrect');
+    //     }
 
-        console.log(err);
+    //     console.log(err);
 
-        throw new Error(err);
-      });
+    //     throw new Error(err);
+    //   });
   }
 
   // getRemoteDB(username, password) {
@@ -147,43 +156,48 @@ class Account {
   // }
 
   signOut() {
-    return this.isSignedIn()
-
-    .then(res => {
-      if (!res) throw new Error('User is not signed in');
-
-      return remoteDB.logOut()
-
-        .then(res => {
-          if (!res.ok) throw new Error('Sign out failed');
-
-          remoteDB = null;
-          return metaDB.destroyMetaDB()
-
-            .then(_ => {
-              return {status: 'success'};
-            })
-        })
-    })
+    dataAuth.signOut().then(res => {status: 'success'})
 
     .catch(err => {
       throw new Error(err);
     })
+    // return this.isSignedIn()
+
+    // .then(res => {
+    //   if (!res) throw new Error('User is not signed in');
+
+    //   return remoteDB.logOut()
+
+    //     .then(res => {
+    //       if (!res.ok) throw new Error('Sign out failed');
+
+    //       remoteDB = null;
+    //       return metaDB.destroyMetaDB()
+
+    //         .then(_ => {
+    //           return {status: 'success'};
+    //         })
+    //     })
+    // })
+
+    // .catch(err => {
+    //   throw new Error(err);
+    // })
   }
 
-  getSession() {
-    if (!remoteDB) throw new Error('User is not signed in');
+  // getSession() {
+  //   if (!remoteDB) throw new Error('User is not signed in');
 
-    return remoteDB.getSession().then(res => {
-      if (!res.userCtx.name) {
-        return null;
-      }
+  //   return remoteDB.getSession().then(res => {
+  //     if (!res.userCtx.name) {
+  //       return null;
+  //     }
 
-      return res;
-    }).catch(err => {
-      throw new Error(err);
-    });
-  }
+  //     return res;
+  //   }).catch(err => {
+  //     throw new Error(err);
+  //   });
+  // }
 
   getUserDoc(username){
     return this.remoteDB.getUser(username)

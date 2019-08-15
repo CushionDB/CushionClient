@@ -6,16 +6,17 @@ let metaDB;
 
 class MetaDB {
 	constructor() {
-		localDB = 'cushionDB';
+		this.localDBName = 'cushionDB';
+		this.remoteDBAddress;
 		this.ready = this.assignRemoteAddress();
 	}
 
 	localDB() {
- 		return localDB;
+ 		return this.localDBName;
  	}
 
  	remoteDB() {
- 		return remoteDB;
+ 		return this.remoteDBAddress;
  	}
 	
 	getMetaDB() {
@@ -31,7 +32,7 @@ class MetaDB {
 
 	assignRemoteAddress() {
  		return this.getRemoteDBAddress().then(res => {
- 			remoteDB = res;
+ 			this.remoteDBAddress = res;
  			return Promise.resolve();
  		});
  	}
@@ -39,7 +40,7 @@ class MetaDB {
  	startMetaDB(remoteAddress) {
     const cushionDBDoc = {
     	_id: 'cushionMeta',
-    	cushionLocalDBName: localDB,
+    	cushionLocalDBName: this.localDB,
     	cushionRemoteDBAddress: remoteAddress
   	};
 

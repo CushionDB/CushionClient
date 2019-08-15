@@ -2,22 +2,28 @@ import PouchDB from 'pouchdb';
 import PouchAuth from 'pouchdb-authentication';
 PouchDB.plugin(PouchAuth);
 
+import MetaDB from './metaDB';
 import { scheduleSyncPush, scheduleSyncPull } from './utils/swUtils';
 
 class DatabaseAuth {
-	constructor(meta) {
-		this.metaDB = meta;
-		this.localDB = newPouchDB(this.metaDB.localDB());
+	constructor(couchBaseURL) {
+		this.metaDB = new MetaDB();
+		this.couchBaseURL = couchBaseURL;
+		this.ready = this.metaDB.ready;
 
-		if (this.metaDB.remoteDB()) {
-			this.remoteDB = new PouchDB(this.metaDB.remoteDB());
+		this.metaDB.ready.then(() => {	
+			this.localDB = new PouchDB(this.metaDB.localDB());
 
-			this.bindToLocalDBChange(() => {
-				this.isSignedIn().then(res => {
-					if (res) scheduleSyncPush();
-				})
-			});
-		}
+			if (this.metaDB.remoteDB()) {
+				this.remoteDB = new PouchDB(this.metaDB.remoteDB());
+
+				this.bindToLocalDBChange(() => {
+					this.isSignedIn().then(res => {
+						if (res) scheduleSyncPush();
+					})
+				});
+			}
+		})
 	}
 
 	bindToLocalDBChange(callback) {
@@ -27,7 +33,7 @@ class DatabaseAuth {
 		 }).on('change', callback);
 	}
 
-	isSingedIn() {
+	isSignedIn() {
 		if (!this.remoteDB) return Promise.resolve(false);
 
     return this.getSession(this.remoteDB)
@@ -59,6 +65,60 @@ class DatabaseAuth {
   	return this.remoteDB.__opts.auth.password;
 	}
 
+	signIn(username, password) {
+		const couchUserDBName = DatabaseAuth.createCouchUserDBName(this.couchBaseURL, username)
+    const fakeRemoteDB = this.createRemoteCouchDBHandle(couchUserDBName, username, password)
+
+    console.log(fakeRemoteDB);
+    return fakeRemoteDB.logIn(username, password)
+      
+      .then(res => {
+
+        return this.metaDB.startMetaDB(couchUserDBName)
+
+        .then(res => {
+          this.remoteDB = this.createRemoteCouchDBHandle(couchUserDBName);
+          return true;
+        })
+      })
+
+      .catch(err => {
+        if (err.name === 'unauthorized' || err.name === 'forbidden') {
+          throw new Error('User name or password incorrect');
+        }
+
+        throw new Error(err);
+      });
+	}
+
+	signOut() {
+		return this.isSignedIn()
+
+	    .then(res => {
+	      if (!res) throw new Error('User is not signed in');
+
+	      return this.remoteDB.logOut()
+
+	        .then(res => {
+	          if (!res.ok) throw new Error('Sign out failed');
+
+	          this.remoteDB = null;
+	          return metaDB.destroyMetaDB()
+
+	            .then(_ => {
+	              return true;
+	            })
+	        })
+	    })
+
+	    .catch(err => {
+	      throw new Error(err);
+	    })
+	}
+
+	createRemoteCouchDBHandle(remoteName, username, password) {
+	  return new PouchDB(remoteName, {skip_setup: true});
+	}
 
 	static createCouchUserDBName(couchBaseURL, username) {
 	  const hexUsername = Buffer.from(username, 'utf8').toString('hex');
