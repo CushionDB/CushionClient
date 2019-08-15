@@ -1,4 +1,6 @@
 import PouchDB from 'pouchdb';
+import { getFetchOpts } from './utils/fetchUtils';
+import * as urls from './utils/urls';
 
 let remoteDB;
 let localDB;
@@ -37,15 +39,21 @@ class MetaDB {
  		});
  	}
 
- 	startMetaDB(remoteAddress) {
-    const cushionDBDoc = {
-    	_id: 'cushionMeta',
-    	cushionLocalDBName: this.localDB,
-    	cushionRemoteDBAddress: remoteAddress
-  	};
+ 	startMetaDB(remoteAddress, username) {
+ 		return fetch(urls.isSubscribedToPush(username), getFetchOpts({
+ 			method: 'GET'
+ 		})).then(res => {
+			console.log(res); 			
 
- 		metaDB = new PouchDB('cushionMeta');
- 		return metaDB.put(cushionDBDoc);
+	    const cushionDBDoc = {
+	    	_id: 'cushionMeta',
+	    	cushionLocalDBName: this.localDB,
+	    	cushionRemoteDBAddress: remoteAddress
+	  	};
+
+	 		metaDB = new PouchDB('cushionMeta');
+	 		return metaDB.put(cushionDBDoc);
+ 		})
  	}
 
  	destroyMetaDB() {

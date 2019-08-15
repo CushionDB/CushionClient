@@ -69,12 +69,10 @@ class DatabaseAuth {
 		const couchUserDBName = DatabaseAuth.createCouchUserDBName(this.couchBaseURL, username)
     const fakeRemoteDB = this.createRemoteCouchDBHandle(couchUserDBName, username, password)
 
-    console.log(fakeRemoteDB);
     return fakeRemoteDB.logIn(username, password)
       
       .then(res => {
-
-        return this.metaDB.startMetaDB(couchUserDBName)
+        return this.metaDB.startMetaDB(couchUserDBName, username)
 
         .then(res => {
           this.remoteDB = this.createRemoteCouchDBHandle(couchUserDBName);
@@ -84,7 +82,7 @@ class DatabaseAuth {
 
       .catch(err => {
         if (err.name === 'unauthorized' || err.name === 'forbidden') {
-          throw new Error('User name or password incorrect');
+          throw new Error('Username or password incorrect');
         }
 
         throw new Error(err);
@@ -117,7 +115,12 @@ class DatabaseAuth {
 	}
 
 	createRemoteCouchDBHandle(remoteName, username, password) {
-	  return new PouchDB(remoteName, {skip_setup: true});
+	  return new PouchDB(remoteName, {skip_setup: true, 
+	  	auth: {
+	  		username, 
+	  		password
+	  	}
+		});
 	}
 
 	static createCouchUserDBName(couchBaseURL, username) {

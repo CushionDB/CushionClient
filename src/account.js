@@ -81,7 +81,7 @@ class Account {
     }
 
     return fetch(
-      urls.signup(envVars.cushionServerBaseURL),
+      urls.signup(),
       fetchUtils.getFetchOpts({
         method: 'POST',
         data: {
