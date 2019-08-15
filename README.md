@@ -23,7 +23,7 @@ npm i cushion-client
 ## Setup
 
 
-## Example Usage
+## Sample Usage
 
 ```js
 import Cushion from 'cushiondb';
