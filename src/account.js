@@ -199,21 +199,42 @@ class Account {
   //   });
   // }
 
-  getUserDoc(username){
-    return this.remoteDB.getUser(username)
-      .then( res => {
-        // console.log(res) ;
-        return res;
-      }).catch( err => console.log(err) );
+  getUserDoc(username) {
+    this.isSignedIn().then(res => {
+      if (!res) return undefined;
+
+      return dbAuth.remoteDB.getUser(username)
+
+        .then(res => {
+          return res;
+        })
+
+        .catch(err => {
+          throw new Error(err);
+        })
+    });
   }
 
   changePassword(username, newPassword){
-    this.remoteDB.changePassword(username, newPassword)
-      .then(res => {
-        console.log(res)
-        this.getRemoteDB(username, newPassword);
-        return res;
-      }).catch(err => console.log(err));
+    this.isSignedIn().then(res => {
+      if (!res) {
+        throw new Error('User is not signed in');
+      }
+
+      return dbAuth.remoteDB.changePassword(username, newPassword)
+
+        .then(res => {
+          if (res.ok) {
+            return {status: 'success'};
+          } else {
+            throw new Error({err: 'Something went wrong', res});
+          }
+        })
+
+        .catch(err => {
+          throw new Error(err);
+        })
+    });
   }
 
   destroy(username){

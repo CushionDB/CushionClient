@@ -40,20 +40,22 @@ class MetaDB {
  	}
 
  	startMetaDB(remoteAddress, username) {
- 		return fetch(urls.isSubscribedToPush(username), getFetchOpts({
- 			method: 'GET'
- 		})).then(res => {
-			console.log(res); 			
+ 		// return fetch(urls.isSubscribedToPush(username), getFetchOpts({
+ 		// 	method: 'GET'
+ 		// })).then(res => {
+			// console.log(res); 			
 
 	    const cushionDBDoc = {
 	    	_id: 'cushionMeta',
 	    	cushionLocalDBName: this.localDB,
-	    	cushionRemoteDBAddress: remoteAddress
+	    	cushionRemoteDBAddress: remoteAddress,
+	    	// MAKE DYNAMIC
+	    	subscribedToPush: true
 	  	};
 
 	 		metaDB = new PouchDB('cushionMeta');
 	 		return metaDB.put(cushionDBDoc);
- 		})
+ 		// })
  	}
 
  	destroyMetaDB() {
