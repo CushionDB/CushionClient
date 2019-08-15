@@ -247,7 +247,7 @@ class Account {
   subscribeToNotifications() {
     this.isSignedIn()
 
-    .then(() =>
+    .then(res =>
       this.getServiceWorker().then(sw => {
         sw.ready.then(reg => {
           reg.pushManager.subscribe({
