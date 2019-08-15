@@ -149,28 +149,26 @@ class Account {
   signOut() {
     return this.isSignedIn()
 
-      .then(res => {
-        if (!res) throw new Error('User is not signed in');
+    .then(res => {
+      if (!res) throw new Error('User is not signed in');
 
-        return remoteDB.logOut()
+      return remoteDB.logOut()
 
-          .then(res => {
-            if (!res.ok) throw new Error('Sign out failed');
+        .then(res => {
+          if (!res.ok) throw new Error('Sign out failed');
 
-            remoteDB = null;
-            return metaDB.destroyMetaDB().then(_ => {
+          remoteDB = null;
+          return metaDB.destroyMetaDB()
+
+            .then(_ => {
               return {status: 'success'};
-            }).catch(err => console.log(err));
-          })
+            })
+        })
+    })
 
-          .catch(err => {
-            throw new Error(err);
-          })
-      })
-
-      .catch(err => {
-        throw new Error(err);
-      })
+    .catch(err => {
+      throw new Error(err);
+    })
   }
 
   getSession() {

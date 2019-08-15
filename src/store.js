@@ -8,34 +8,36 @@ import urlB64ToUint8Array from './utils/64to8.js';
 
 // private store properties
 let listeners = [];
-let metaDB;
-let localDB;
+// let metaDB;
+// let dbAuth.localDB;
+let dbAuth;
 
-const startContReplicationToRemoteDB = (localDB) => {
-  dbUtils.bindToChange(localDB, scheduleSyncPush);
-}
+// const startContReplicationToRemoteDB = (localDB) => {
+//   dbUtils.bindToChange(localDB, scheduleSyncPush);
+// }
 
 const notifyListeners = () => {
   listeners.forEach(l => l()); 
 }
 
 class Store {
-  constructor(metaDB) {
-    metaDB = metaDB;
-    localDB = new PouchDB(metaDB.localDB());
+  constructor(dataAuth) {
+    dbAuth = dataAuth;
+    // metaDB = metaDB;
+    // localDB = new PouchDB(metaDB.localDB());
+    dbAuth.bindToLocalDBChange(notifyListeners);
+    // dbUtils.bindToChange(localDB, notifyListeners);
 
-    dbUtils.bindToChange(localDB, notifyListeners);
-
-    if (metaDB.remoteDB()) {
-      startContReplicationToRemoteDB(localDB);
-    }
+    // if (metaDB.remoteDB()) {
+    //   startContReplicationToRemoteDB(localDB);
+    // }
     // this.bindToLocalDBChange(this.notifyListeners);
   }
 
-  userSignedIn() {
-    scheduleSyncPull();
-    startContReplicationToRemoteDB(localDB);
-  }
+  // userSignedIn() {
+  //   scheduleSyncPull();
+  //   startContReplicationToRemoteDB(localDB);
+  // }
 
   subscribe(listener) {
     listeners = [
@@ -49,13 +51,13 @@ class Store {
   }
 
   set(document) {
-    return localDB.post(document)
+    return dbAuth.localDB.post(document)
       .then(doc => doc.id)
       .catch(e => console.log(e));
   }
 
   get(id) {
-    return localDB.get(id)
+    return dbAuth.localDB.get(id)
       .then(doc => {
         const { _rev, ...docWithoutRev } = doc;
 
@@ -64,7 +66,7 @@ class Store {
   }
 
   getAll() {
-    return localDB.allDocs({
+    return dbAuth.localDB.allDocs({
       'include_docs': true,
     }).then(docs => {
       return docs.rows.map(doc => {
@@ -76,10 +78,10 @@ class Store {
   }
 
   update(id, attrs) {
-    return localDB.get(id)
+    return dbAuth.localDB.get(id)
       .then(doc => {
         // console.log(doc);
-        return  localDB.put({
+        return  dbAuth.localDB.put({
           ...doc,
           ...attrs
         }).then(doc => doc.id)
@@ -88,27 +90,27 @@ class Store {
   }
 
   delete(id) {
-    return localDB.get(id).then(doc => {
+    return dbAuth.localDB.get(id).then(doc => {
       doc._deleted = true;
 
-      return  localDB.put(doc)
+      return  dbAuth.localDB.put(doc)
         .then(doc => doc.id)
         .catch(e => console.log(e));
     });
   }
 
   deleteAll() {
-    return localDB.allDocs().then(docs => {
+    return dbAuth.localDB.allDocs().then(docs => {
       docs.rows.forEach(doc => doc._deleted = true);
-      return localDB.bulkDocs(docs.rows)
+      return dbAuth.localDB.bulkDocs(docs.rows)
     });
   }
 
   find(attribute, value){
-    return localDB.createIndex({
+    return dbAuth.localDB.createIndex({
       index: {fields: [attribute]}
     }).then( res => {
-      return localDB.find({
+      return dbAuth.localDB.find({
         selector: {
           [attribute]: value
         }
@@ -120,7 +122,7 @@ class Store {
   }
 
   destroy(){
-    return localDB.destroy()
+    return dbAuth.localDB.destroy()
       .then( resp => resp)
       .catch( err => console.log(err) );
   }

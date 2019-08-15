@@ -1,3 +1,5 @@
+// webpack with pouch
+
 class CushionWorker {
   constructor() {
     this.pushEvents = [];
