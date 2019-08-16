@@ -16,7 +16,7 @@ CushionClient is designed to work with [CushionSever](https://github.com/Cushion
 
 ## Prerequisites
 
-* Node.js >= ??? - *CushionClient*
+* Node.js >= 10.16.3 - *CushionClient*
 * Docker - *CushionServer and CushionCouch*
 
 ## Install
