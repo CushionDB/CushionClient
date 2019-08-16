@@ -61,8 +61,8 @@ cushion.store.set({
 
 ## The Team
 
-**Avshar Kirksall** - Brooklyn, NY - [Website]()
+[Avshar Kirksall]() *Software Engineer* Brooklyn, NY
 
-**Daniel Rote** - Seattle, WA - [Website]()
+[Jaron Truman]() *Software Engineer* Las Vegas, NV
 
-**Jaron Truman** - Las Vegas, NV - [Website]()
+[Daniel Rote]() *Software Engineer* Seattle, WA
