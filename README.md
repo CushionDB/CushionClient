@@ -61,11 +61,8 @@ cushion.store.set({
 
 ## The Team
 
-<p><img width="130" src="https://cushiondb.github.io/img/avshar.jpg" /></p>
-<p><b>Avshar Kirksall</b> - Brooklyn, NY - <a href="">Website</a></p>
+**Avshar Kirksall** - Brooklyn, NY - [Website]()
 
-<p><img width="130" src="https://cushiondb.github.io/img/daniel.png" /></p>
-<p><b>Daniel Rote</b> - Seattle, WA - <a href="">Website</a></p>
+**Daniel Rote** - Seattle, WA - [Website]()
 
-<p><img width="130" src="https://cushiondb.github.io/img/jaron.jpg" /></p>
-<p><b>Jaron Truman</b> - Las Vegas, NV - <a href="">Website</a></p>
+**Jaron Truman** - Las Vegas, NV - [Website]()
