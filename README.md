@@ -10,7 +10,7 @@ CushionClient is designed to work with [CushionSever](https://github.com/Cushion
 
 ## CushionDB Architecture
 
-<p align="center"><img src="https://cushiondb.github.io/img/cushiondb-arch.png"></p>
+<p align="center"><img src="https://cushiondb.github.io/img/cushion-arch.png"></p>
 
 # Getting Started
 
