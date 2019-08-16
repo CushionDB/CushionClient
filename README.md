@@ -27,6 +27,17 @@ npm i cushion-client
 
 ## Setup
 
+CushionClient is an npm package. It can either be added to the projects node modules by running `npm i cushion-client` from within your project's root directory, or `cushion-client` can simply be added as a dependency inside your project's `package.json` file.
+
+ Once CushionClient has been added as a dependency, changes can be made to the `.couchConfig.json` file within the `node_modules/cushion-client` directory. This is only necessary if the default server configurations are changed while setting up the CushionDB backend.
+
+<p align="center"><img src="https://cushiondb.github.io/img/client-config.png"></p>
+
+The URLs in this config file will be used for networking with the two backend containers and the Public VAPID key is needed for PWA Push Notifications to work.
+
+Finally, a Service Worker file (`sw.js`) is needed in the project's root directory. This file comes packaged with the `cushion-client` node module and can be moved to your current project's root directory by running `mv node_modules/cushion-client/sw.js .` from the command line.
+
+<p align="center"><img src="https://cushiondb.github.io/img/sw-code.png"></p>
 
 ## Sample Usage
 
