@@ -59,7 +59,7 @@ cushion.store.set({
 
 [Full API Documentation]()
 
-## The Team
+# The Team
 
 [Avshar Kirksall]() *Software Engineer* Brooklyn, NY
 
