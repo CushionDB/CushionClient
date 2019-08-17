@@ -101,7 +101,7 @@ class DatabaseAuth {
 	          if (!res.ok) throw new Error('Sign out failed');
 
 	          this.remoteDB = null;
-	          return metaDB.destroy()
+	          return this.metaDB.destroy()
 
 	            .then(_ => {
 	              return true;

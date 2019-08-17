@@ -157,7 +157,7 @@ class Account {
   // }
 
   signOut() {
-    dataAuth.signOut().then(res => {status: 'success'})
+    dbAuth.signOut().then(res => {status: 'success'})
 
     .catch(err => {
       throw new Error(err);
