@@ -11,7 +11,7 @@ class DatabaseAuth {
 		this.couchBaseURL = couchBaseURL;
 		this.ready = this.metaDB.ready;
 
-		this.metaDB.ready.then(() => {	
+		this.metaDB.ready.then(() => {
 			this.localDB = new PouchDB(this.metaDB.localDB());
 
 			if (this.metaDB.remoteDB()) {
@@ -70,22 +70,22 @@ class DatabaseAuth {
     const fakeRemoteDB = this.createRemoteCouchDBHandle(couchUserDBName, username, password)
 
     return fakeRemoteDB.logIn(username, password)
-      
+
       .then(res => {
         return this.metaDB.startMetaDB(couchUserDBName, username)
-
-        .then(res => {
-          this.remoteDB = this.createRemoteCouchDBHandle(couchUserDBName);
-          return true;
-        })
       })
+
+			.then(res => {
+				this.remoteDB = this.createRemoteCouchDBHandle(couchUserDBName);
+				return Promise.resolve();
+			})
 
       .catch(err => {
         if (err.name === 'unauthorized' || err.name === 'forbidden') {
           throw new Error('Username or password incorrect');
         }
 
-        throw new Error(err);
+        throw new Error(`From Server ${err}`);
       });
 	}
 
@@ -115,9 +115,9 @@ class DatabaseAuth {
 	}
 
 	createRemoteCouchDBHandle(remoteName, username, password) {
-	  return new PouchDB(remoteName, {skip_setup: true, 
+	  return new PouchDB(remoteName, {skip_setup: true,
 	  	auth: {
-	  		username, 
+	  		username,
 	  		password
 	  	}
 		});
@@ -125,12 +125,12 @@ class DatabaseAuth {
 
 	destroyUser(username) {
     return this.remoteDB.deleteUser(username)
-      
+
       .then(res => {
         this.remoteDB = null;
         return this.localDB.destroy()
       })
-      
+
       .then(res => {
         return this.metaDB.destroy();
       })

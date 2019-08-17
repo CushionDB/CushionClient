@@ -20,7 +20,7 @@ class MetaDB {
  	remoteDB() {
  		return this.remoteDBAddress;
  	}
-	
+
 	getMetaDB() {
 		const cushionMeta = new PouchDB('cushionMeta');
 		return cushionMeta.get('cushionMeta');
@@ -43,7 +43,7 @@ class MetaDB {
  		return fetch(urls.isSubscribedToPush(username), getFetchOpts({
  			method: 'GET'
  		})).then(res => {
-			console.log(res); 			
+			console.log(res);
 
 	    const cushionDBDoc = {
 	    	_id: 'cushionMeta',
@@ -56,6 +56,7 @@ class MetaDB {
 	 		metaDB = new PouchDB('cushionMeta');
 	 		return metaDB.put(cushionDBDoc);
  		})
+		.catch(err => console.log(err));
  	}
 
  	destroy() {
