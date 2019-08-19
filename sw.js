@@ -1,4 +1,8 @@
-importScripts('assets/cushionWorker.js');
+if (process.env.NODE_ENV === 'production') {
+	importScripts('dist/cushionWorker');
+} else {
+	importScripts('assets/cushionWorker.js');
+}
 
 self.addEventListener('sync', evt => {
   evt.waitUntil(cushionWorker.syncEventTriggered(evt));

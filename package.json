@@ -1,23 +1,23 @@
 {
-  "name": "cushion",
-  "version": "1.0.0",
+  "name": "@cushiondb/cushiondb-client",
+  "version": "0.0.1",
   "description": "",
-  "main": "index.html",
+  "main": "./dist/main.js",
   "scripts": {
     "prod": "webpack --mode production",
     "dev": "webpack-dev-server --mode development --open",
-    "build": "npx webpack",
+    "build": "webpack --config ./webpack.config.js --mode=production",
     "test": "jest"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/drote/cushion.git"
+    "url": "git+https://github.com/CushionDB/CushionClient.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/drote/cushion/issues"
+    "url": "https://github.com/CushionDB/issues"
   },
   "homepage": "https://github.com/drote/cushion#readme",
   "devDependencies": {
