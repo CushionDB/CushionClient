@@ -6,6 +6,7 @@
   "scripts": {
     "prod": "webpack --mode production",
     "dev": "webpack-dev-server --mode development --open",
+    "build": "npx webpack",
     "test": "jest"
   },
   "repository": {

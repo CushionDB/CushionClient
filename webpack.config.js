@@ -3,8 +3,12 @@ const path = require('path');
 module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'main.js',
+    filename: '[name].js',
     publicPath: '/assets'
+  },
+  entry: {
+    main: './src/index.js',
+    cushionWorker: './src/cushion_worker/cushionWorker.js'
   },
   module: {
     rules: [

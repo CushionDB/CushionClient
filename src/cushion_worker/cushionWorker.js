@@ -1,12 +1,7 @@
-const path = require('path');
-const rootDir = path.dirname(require.main.filename);
-let configObj = require(rootDir + 'cushionConfig.json');
+import PouchDB from 'pouchdb';
+import { getConfigObj } from '../utils/configUtils';
 
-if (! configObj) {
- configObj = require('../../.defaultCushionConfig.json');
-}
-
-console.log(configObj);
+const configObj = getConfigObj();
 
 class CushionWorker {
   constructor() {
