@@ -1,7 +1,9 @@
 import PouchDB from 'pouchdb';
+import path from 'path';
 import { getConfigObj } from '../utils/configUtils';
 
 const configObj = getConfigObj();
+const ROOT_DIR = configObj.appPushIcons ? path.dirname(require.main.filename) : '../../';
 
 class CushionWorker {
   constructor() {
@@ -100,10 +102,10 @@ cushionWorker.addPushEvent('SYNC', (event) => {
   const title = configObj.appname;
   const options = {
     body: "is updating in the background.",
-    icon: configObj.icon,
+    icon: `${ROOT_DIR}\icons\logo-icon.png`,
     silent: true,
     renotify: false,
-    badge: configObj.badge
+    badge: `${ROOT_DIR}\icons\logo-badge.png`
   };
 
   return cushionWorker.getMetaDB().then(doc => {
