@@ -26,18 +26,11 @@ class MetaDB {
 		return cushionMeta.get('cushionMeta');
 	}
 
-	getRemoteDBAddress() {
+	assignRemoteDBAddress() {
 		return this.getMetaDB().then(dbDoc => {
-			return dbDoc.cushionRemoteDBAddress;
+      this.remoteDBAddress = dbDoc.remoteDBAddress; 
 		}).catch(_ => Promise.resolve(null));
 	}
-
-	assignRemoteAddress() {
- 		return this.getRemoteDBAddress().then(res => {
- 			this.remoteDBAddress = res;
- 			return Promise.resolve();
- 		});
- 	}
 
  	startMetaDB(remoteAddress, username) {
  		return fetch(urls.isSubscribedToPush(username), getFetchOpts({
@@ -48,8 +41,9 @@ class MetaDB {
 
 	    const cushionDBDoc = {
 	    	_id: 'cushionMeta',
-	    	cushionLocalDBName: this.localDB(),
-	    	cushionRemoteDBAddress: remoteAddress,
+	    	localDBName: this.localDB(),
+	    	remoteDBAddress: remoteAddress,
+        username: username,
 	    	// MAKE DYNAMIC
 	    	subscribedToPush: json.subscribed 
 	  	};

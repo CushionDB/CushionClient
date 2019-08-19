@@ -87,8 +87,8 @@ cushionWorker.addPushEvent('SYNC', (event) => {
   };
 
   return cushionWorker.getMetaDB().then(doc => {
-    let localDBName = doc.cushionLocalDBName;
-    let remoteDBAddress = doc.cushionRemoteDBAddress;
+    let localDBName = doc.localDBName;
+    let remoteDBAddress = doc.remoteDBAddress;
 
     return Promise.all([
       cushionWorker.pouchSync(remoteDBAddress, localDBName),
@@ -111,14 +111,15 @@ cushionWorker.addSyncEvent('REPLICATE_TO_SERVER', () => {
   return cushionWorker.getMetaDB()
 
   .then(doc => {
-    const localDBName = doc.cushionLocalDBName;
-    const remoteDBAddress = doc.cushionRemoteDBAddress;
+    const localDBName = doc.localDBName;
+    const remoteDBAddress = doc.remoteDBAddress;
     const subscribedToPush = doc.subscribedToPush;
 
     return cushionWorker.pouchSync(remoteDBAddress, localDBName)
 
     .then(() => {
       if (subscribedToPush) {
+    cushionWorkerUtils.triggerPush();
         // TRIGGER PUSH NOTIFICATION
       }
 
@@ -129,12 +130,27 @@ cushionWorker.addSyncEvent('REPLICATE_TO_SERVER', () => {
   .catch(err => console.log(err))
 });
 
+  // triggerPushNotification() {
+  //   const data = {
+  //     username: this.remoteDB.__opts.auth.username,
+  //     device: navigator.platform
+  //   };
+
+  //   fetch('http://localhost:3001/triggerSync', {
+  //     method: 'POST',
+  //     body: JSON.stringify(data),
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //     },
+  //   });
+  // }
+
 cushionWorker.addSyncEvent('REPLICATE_FROM_SERVER', () => {
   return cushionWorker.getMetaDB()
 
   .then(doc => {
-    const localDBName = doc.cushionLocalDBName;
-    const remoteDBAddress = doc.cushionRemoteDBAddress;
+    const localDBName = doc.localDBName;
+    const remoteDBAddress = doc.remoteDBAddress;
 
     return cushionWorker.pouchSync(localDBName, remoteDBAddress);
   })

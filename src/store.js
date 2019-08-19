@@ -128,19 +128,5 @@ class Store {
   }
 }
 
-  // triggerPushNotification() {
-  //   const data = {
-  //     username: this.remoteDB.__opts.auth.username,
-  //     device: navigator.platform
-  //   };
-
-  //   fetch('http://localhost:3001/triggerSync', {
-  //     method: 'POST',
-  //     body: JSON.stringify(data),
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //     },
-  //   });
-  // }
 
 export default Store;
