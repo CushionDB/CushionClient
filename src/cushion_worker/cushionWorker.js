@@ -102,11 +102,13 @@ class CushionWorker {
 let cushionWorker = new CushionWorker();
 
 cushionWorker.addPushEvent('SYNC', (event) => {  
-  const title = 'cushionJS';
+  const title = configObj.appname;
   const options = {
-    body: 'Your data has been synced!',
-    icon: 'images/icon.png',
-    badge: 'images/badge.png'
+    body: "is updating in the background.",
+    icon: configObj.icon,
+    silent: true,
+    renotify: false,
+    badge: configObj.badge
   };
 
   return cushionWorker.getMetaDB().then(doc => {
