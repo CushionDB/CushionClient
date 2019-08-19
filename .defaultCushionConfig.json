@@ -3,5 +3,6 @@
 	"cushionServerBaseURL": "http://localhost:3001",
 	"publicVapid": "BP_QrGDbKkoFatPv0iiMEfl5XINAZSknNz171ID_uNXmmA5_bRnmGgt7zqfyDOgzwptrG9w0lqEU94ru34teLQU",
   "appname": "CushionDB",
-  "icon" : "icon/logo-icon.png"
+  "icon": "icons/logo-icon.png",
+  "badge": "icons/logo-badge.png"
 }

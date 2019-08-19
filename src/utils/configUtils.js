@@ -1,14 +1,13 @@
 const path = require('path');
 const rootDir = path.dirname(require.main.filename);
-let configObj = require (rootDir + 'cushionConfig.json');
+let configObj;
 
-if (! configObj) {
+try {
+	configObj = require (rootDir + 'cushionConfig.json');
+} catch {	
  configObj = require('../../.defaultCushionConfig.json');
 }
-
 
 export const getConfigObj = () => {
 	return configObj;
 }
-
-

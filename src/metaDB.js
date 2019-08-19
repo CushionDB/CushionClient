@@ -26,7 +26,7 @@ class MetaDB {
 		return cushionMeta.get('cushionMeta');
 	}
 
-	assignRemoteDBAddress() {
+	assignRemoteAddress() {
 		return this.getMetaDB().then(dbDoc => {
       this.remoteDBAddress = dbDoc.remoteDBAddress; 
 		}).catch(_ => Promise.resolve(null));

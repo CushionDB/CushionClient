@@ -1,12 +1,12 @@
-// webpack with pouch
-
 const path = require('path');
 const rootDir = path.dirname(require.main.filename);
-let configObj = require (rootDir + 'cushionConfig.json');
+let configObj = require(rootDir + 'cushionConfig.json');
 
 if (! configObj) {
  configObj = require('../../.defaultCushionConfig.json');
 }
+
+console.log(configObj);
 
 class CushionWorker {
   constructor() {
@@ -133,8 +133,9 @@ cushionWorker.addMessageEvent('SCHEDULE_PULL', () => {
 });
 
 cushionWorker.addSyncEvent('REPLICATE_TO_SERVER', () => {
+  let userDoc;
+  
   return cushionWorker.getMetaDB()
-  let userDoc ; 
   .then(doc => {
     userDoc = doc;
     const localDBName = doc.localDBName;
@@ -143,13 +144,13 @@ cushionWorker.addSyncEvent('REPLICATE_TO_SERVER', () => {
     return cushionWorker.pouchSync(remoteDBAddress, localDBName)
   })
 
-    .then(() => {
-      if (userDoc.subscribedToPush) {
-        return cushionWorker.triggerPush(userDoc.username);
-      }
+  .then(() => {
+    if (userDoc.subscribedToPush) {
+      return cushionWorker.triggerPush(userDoc.username);
+    }
 
-      return Promise.resolve();
-    });
+    return Promise.resolve();
+  })
 
   .catch(err => console.log(err))
 });

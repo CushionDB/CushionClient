@@ -1,6 +1,7 @@
 import urlB64ToUint8Array from './64to8';
+import { getConfigObj } from './configUtils';
 
-const CONFIG = require('../../.cushionConfig.json');
+const configObj = getConfigObj();
 
 const getServiceWorker = () => {
 	if (navigator.serviceWorker.controller) {
@@ -37,7 +38,7 @@ export const subscribeDeviceToNotifications = () => {
     return sw.ready.then(reg => {
       return reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlB64ToUint8Array(CONFIG.publicVapid),
+        applicationServerKey: urlB64ToUint8Array(configObj.publicVapid),
       });
     });
   });
