@@ -92,22 +92,22 @@ class Account {
       })
     )
 
-    .then(response => {
-      if (response.ok) {
-        return {status: 'success'}
-      }
+      .then(response => {
+        if (response.ok) {
+          return {status: 'success'}
+        }
 
-      switch (response.status) {
-        case 401:
-          throw new Error('CouchDB admin or password incorrect');
-        case 409:
-          throw new Error('Username is taken');
-        default:
-          throw new Error('Something went wrong');
-      }
-    }).catch(err => {
-      throw new Error(err);
-    });
+        switch (response.status) {
+          case 401:
+            throw new Error('CouchDB admin or password incorrect');
+          case 409:
+            throw new Error('Username is taken');
+          default:
+            throw new Error('Something went wrong');
+        }
+      }).catch(err => {
+        throw new Error(err);
+      });
   }
 
   signIn({ username, password }) {
@@ -117,15 +117,15 @@ class Account {
 
     return dbAuth.signIn(username, password).then(res => {status: 'success'})
 
-    .catch(err => {
-      throw new Error(err);
-    });
+      .catch(err => {
+        throw new Error(err);
+      });
 
     // const couchUserDBName = dbUtils.createCouchUserDBName(envVars.couchBaseURL, username)
     // const fakeRemoteDB = createRemoteCouchDBHandle(couchUserDBName, username, password)
 
     // return fakeRemoteDB.logIn(username, password)
-      
+
     //   .then(res => {
 
     //     return metaDB.startMetaDB(couchUserDBName)
@@ -159,9 +159,9 @@ class Account {
   signOut() {
     dbAuth.signOut().then(res => {status: 'success'})
 
-    .catch(err => {
-      throw new Error(err);
-    })
+      .catch(err => {
+        throw new Error(err);
+      })
     // return this.isSignedIn()
 
     // .then(res => {
@@ -217,25 +217,28 @@ class Account {
   }
 
   changePassword(username, newPassword){
-    this.isSignedIn().then(res => {
-      if (!res) {
-        throw new Error('Must be signed in to do that');
-      }
-
-      return dbAuth.remoteDB.changePassword(username, newPassword)
-
-        .then(res => {
-          if (res.ok) {
-            return {status: 'success'};
-          } else {
-            throw new Error({err: 'Something went wrong', res});
-          }
-        })
-
-        .catch(err => {
-          throw new Error(err);
-        })
-    });
+    return fetch(
+      urls.changePassword(), 
+      fetchUtils.getFetchOpts({
+        method: 'POST',
+        data: {
+          name: username,
+          roles: [],
+          type: "user",
+          password: newPassword
+        }
+      }))
+      .then( res => res.json() )
+      .then( resJson => {
+        console.log(resJson);
+        if (resJson.ok === true){
+          dbAuth.changePassword(username, newPassword);
+        }
+      } )
+      .catch(err => {
+        console.log(err);
+      }); 
+    
   }
 
   destroy(username) {
@@ -263,7 +266,7 @@ class Account {
 
 
   changeUsername({curUsername, password, newUsername}){
-    let url = `${TEMP_CONFIG.remoteBaseURL}update`;
+    let url = `${TEMP_CONFIG.remoteBaseURL}updateUser`;
     let options = {
       method: 'PUT',
       data: {
@@ -282,35 +285,35 @@ class Account {
   subscribeToNotifications() {
     this.isSignedIn()
 
-    .then(res => {
-      if (!res) {
-        throw new Error('Must be signed in to do that');
-      }
+      .then(res => {
+        if (!res) {
+          throw new Error('Must be signed in to do that');
+        }
 
-      swUtils.subscribeDeviceToNotifications()
+        swUtils.subscribeDeviceToNotifications()
 
-      .then(subscription => {
-        return this.getUserName()
+          .then(subscription => {
+            return this.getUserName()
 
-          .then(username => {
-            fetch(
-              urls.subscribeDeviceToPush(), 
-              fetchUtils.getFetchOpts({
-                method: 'POST',
-                data: {
-                  username,
-                  subscription,
-                  device: navigator.platform
-                }
-              })
-            ).then(_ => ({status: 'success'}));
+              .then(username => {
+                fetch(
+                  urls.subscribeDeviceToPush(), 
+                  fetchUtils.getFetchOpts({
+                    method: 'POST',
+                    data: {
+                      username,
+                      subscription,
+                      device: navigator.platform
+                    }
+                  })
+                ).then(_ => ({status: 'success'}));
+              });
+          })
+
+          .catch(err => {
+            throw new Error(err);
           });
-      })
-
-      .catch(err => {
-        throw new Error(err);
       });
-    });
   }
 }
 

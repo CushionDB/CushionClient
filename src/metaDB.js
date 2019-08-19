@@ -42,15 +42,16 @@ class MetaDB {
  	startMetaDB(remoteAddress, username) {
  		return fetch(urls.isSubscribedToPush(username), getFetchOpts({
  			method: 'GET'
- 		})).then(res => {
-			console.log(res); 			
+    })).then( res => res.json() )
+    .then(json => {
+			// console.log(json); 			
 
 	    const cushionDBDoc = {
 	    	_id: 'cushionMeta',
 	    	cushionLocalDBName: this.localDB(),
 	    	cushionRemoteDBAddress: remoteAddress,
 	    	// MAKE DYNAMIC
-	    	subscribedToPush: true
+	    	subscribedToPush: json.subscribed 
 	  	};
 
 	 		metaDB = new PouchDB('cushionMeta');
