@@ -64,6 +64,21 @@ class CushionWorker {
     });
   }
 
+  triggerPush(username) {
+    const data = {
+      username: username,
+      device: navigator.platform
+    };
+
+    return fetch('http://localhost:3001/trigger_update_user_devices', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+
   addEvent(arr, id, evt) {
     if (arr.some(e => e.id === id)) throw new Error('Event ID taken');
 
@@ -109,51 +124,36 @@ cushionWorker.addMessageEvent('SCHEDULE_PULL', () => {
 
 cushionWorker.addSyncEvent('REPLICATE_TO_SERVER', () => {
   return cushionWorker.getMetaDB()
-
+  let userDoc ; 
   .then(doc => {
+    userDoc = doc;
     const localDBName = doc.localDBName;
     const remoteDBAddress = doc.remoteDBAddress;
-    const subscribedToPush = doc.subscribedToPush;
 
     return cushionWorker.pouchSync(remoteDBAddress, localDBName)
+  })
 
     .then(() => {
-      if (subscribedToPush) {
-    cushionWorkerUtils.triggerPush();
-        // TRIGGER PUSH NOTIFICATION
+      if (userDoc.subscribedToPush) {
+        return cushionWorker.triggerPush(userDoc.username);
       }
 
       return Promise.resolve();
     });
-  })
 
   .catch(err => console.log(err))
 });
 
-  // triggerPushNotification() {
-  //   const data = {
-  //     username: this.remoteDB.__opts.auth.username,
-  //     device: navigator.platform
-  //   };
-
-  //   fetch('http://localhost:3001/triggerSync', {
-  //     method: 'POST',
-  //     body: JSON.stringify(data),
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //     },
-  //   });
-  // }
 
 cushionWorker.addSyncEvent('REPLICATE_FROM_SERVER', () => {
   return cushionWorker.getMetaDB()
 
-  .then(doc => {
-    const localDBName = doc.localDBName;
-    const remoteDBAddress = doc.remoteDBAddress;
+    .then(doc => {
+      const localDBName = doc.localDBName;
+      const remoteDBAddress = doc.remoteDBAddress;
 
-    return cushionWorker.pouchSync(localDBName, remoteDBAddress);
-  })
+      return cushionWorker.pouchSync(localDBName, remoteDBAddress);
+    })
 
-  .catch(err => console.log(err));
+    .catch(err => console.log(err));
 });

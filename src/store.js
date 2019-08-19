@@ -80,7 +80,6 @@ class Store {
   update(id, attrs) {
     return dbAuth.localDB.get(id)
       .then(doc => {
-        // console.log(doc);
         return  dbAuth.localDB.put({
           ...doc,
           ...attrs
@@ -115,7 +114,6 @@ class Store {
           [attribute]: value
         }
       }).then( r =>{
-        // console.log(r.docs);
         return r.docs;
       }).catch( err => console.log(err) );
     }).catch( err => console.log(err) );
