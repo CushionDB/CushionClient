@@ -10,6 +10,7 @@ class MetaDB {
 		this.localName = 'cushionDB';
 		this.remoteAddress;
 		this.pushSubscribed;
+		this.username;
 		this.ready = this.assignMetaVars();
 	}
 
@@ -25,6 +26,10 @@ class MetaDB {
  		return this.pushSubscribed;
  	}
 
+ 	getUsername() {
+ 		return this.username;
+ 	}
+
 	getMetaDB() {
 		const cushionMeta = new PouchDB('cushionMeta');
 		return cushionMeta.get('cushionMeta');
@@ -36,6 +41,7 @@ class MetaDB {
 		.then(dbDoc => {
       this.remoteAddress = dbDoc.remoteDBAddress; 
       this.pushSubscribed = dbDoc.subscribedToPush;
+      this.username = dbDoc.username;
       return Promise.resolve();
 		})
 
@@ -70,6 +76,20 @@ class MetaDB {
  		})
 
 		.catch(err => Promise.reject(err));
+ 	}
+
+ 	subscribeToNotifications() {
+ 		return this.getMetaDB()
+
+ 		.then(userDoc => {
+ 			const metaDB = new PouchDB('cushionMeta');
+ 			const newDoc = {
+ 				...userDoc,
+ 				subscribedToPush: true,
+ 			}
+
+ 			return metaDB.put(newDoc);
+ 		});
  	}
 
  	destroy() {

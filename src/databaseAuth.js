@@ -89,7 +89,7 @@ class DatabaseAuth {
     });
   }
 
-  signOut(options) {
+  signOut(options = {}) {
     if (!this.remoteDB) return Promise.reject('No remote database to sign out with');
 
     return this.remoteDB.logOut()
@@ -132,7 +132,7 @@ class DatabaseAuth {
     );
   }
 
-  changePassword(username, newPassword){
+  changePassword(username, newPassword) {
     return this.signOut()
     
     .then(_ => this.signIn(username, newPassword));
@@ -153,10 +153,14 @@ class DatabaseAuth {
     .catch(err => Promise.reject(err));
   }
 
-  getUserName() {
+  getUsername() {
     if (!this.remoteDB) return undefined;
-    
-    return this.remoteDB.__opts.auth.username;
+
+    return this.metaDB.getUsername();
+  }
+
+  subscribeToNotifications() {
+    this.metaDB.subscribeToNotifications();
   }
 
   getUserDoc(username) {

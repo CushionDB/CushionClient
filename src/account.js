@@ -161,9 +161,9 @@ class Account {
       return swUtils.subscribeDeviceToNotifications();
     })
 
-    .then(subscription => {
-      subscription = subscription;
-      return this.getUserName();
+    .then(sub => {
+      subscription = sub;
+      return dbAuth.getUsername();
     })
 
     .then(username => {
@@ -180,7 +180,10 @@ class Account {
       );
     })
     
-    .then(_ => ({ status: 'success' }))
+    .then(_ => {
+      dbAuth.subscribeToNotifications();
+      return { status: 'success' }
+    })
 
     .catch(err => Promise.reject(err));
   }

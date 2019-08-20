@@ -59,7 +59,7 @@ cushionWorker.addSyncEvent('REPLICATE_TO_SERVER', () => {
     if (metaDB.subscribedToPush()) {
 
 	    const data = {
-	      username: userDoc.username,
+	      username: metaDB.username,
 	      device: navigator.platform
 	    };
 
