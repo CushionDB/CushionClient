@@ -5,7 +5,6 @@ PouchDB.plugin(PouchAuth);
 import * as urls from './utils/urls';
 import * as fetchUtils from './utils/fetchUtils';
 import * as swUtils from './utils/swUtils';
-import * as dbUtils from './utils/dbUtils';
 
 let dbAuth;
 
@@ -177,7 +176,7 @@ class Account {
     })
     
     .then(_ => ({ status: 'success' }))
-    
+
     .catch(err => Promise.reject(err));
   }
 }

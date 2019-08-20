@@ -2,7 +2,6 @@ import PouchDB from 'pouchdb';
 import PouchDBFind from 'pouchdb-find';
 PouchDB.plugin(PouchDBFind);
 
-import * as dbUtils from './utils/dbUtils';
 import { scheduleSyncPush, scheduleSyncPull } from './utils/swUtils';
 import urlB64ToUint8Array from './utils/64to8.js';
 
