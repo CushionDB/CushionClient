@@ -135,6 +135,16 @@ class DatabaseAuth {
     .catch(err => Promise.reject(err));
   }
 
+  getUserName() {
+    if (!this.remoteDB) return undefined;
+    
+    return this.remoteDB.__opts.auth.username;
+  }
+
+  getUserDoc(username) {
+    return this.remoteDB.getUser(username);
+  }
+
   static createCouchUserDBName(couchBaseURL, username) {
     const hexUsername = Buffer.from(username, 'utf8').toString('hex');
 
