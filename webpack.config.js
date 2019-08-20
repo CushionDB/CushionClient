@@ -11,7 +11,7 @@ module.exports = {
   },
   entry: {
     main: './src/index.js',
-    cushionWorker: './src/cushion_worker/cushionWorker.js'
+    cushionWorker: './src/cushion_worker/cushionWorkerIndex.js'
   },
   module: {
     rules: [
