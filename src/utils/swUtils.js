@@ -34,20 +34,21 @@ const postMessage = (id, payload, sw) => {
 }
 
 export const subscribeDeviceToNotifications = () => {
-  return getServiceWorker().then(sw => {
-    return sw.ready.then(reg => {
-      return reg.pushManager.subscribe({
+  return getServiceWorker()
+
+  .then(sw =>  sw.ready)
+  .then(reg => {
+    return reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlB64ToUint8Array(configObj.publicVapid),
-      });
     });
-  });
+  })
+
+  .catch(err => Promise.reject(err));
 }
 
 export const scheduleSyncPush = () => {
-  console.log('scheduleSyncPush called');
   getServiceWorker().then(sw => {
-    console.log(sw);
     postMessage('SCHEDULE_PUSH', {}, sw);
   });
 }
