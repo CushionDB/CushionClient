@@ -6,3 +6,4 @@ export const subscribeDeviceToPush = () => `${configObj.couchBaseURL}/subscribe_
 export const signup = () => `${configObj.cushionServerBaseURL}/signup`;
 export const isSubscribedToPush = (username) => `${configObj.cushionServerBaseURL}/is_subscribed_to_push/${username}`;
 export const changePassword = ()  => `${configObj.cushionServerBaseURL}/updatePassword`;
+export const triggerUpdateDevices = () => `${configObj.cushionServerBaseURL}/trigger_update_user_devices`;
