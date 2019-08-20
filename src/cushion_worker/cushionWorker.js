@@ -1,6 +1,5 @@
 import PouchDB from 'pouchdb';
 import path from 'path';
-import { getConfigObj } from '../utils/configUtils';
 import * as utils from '../utils/cushionWorkerUtils';
 
 class CushionWorker {
@@ -55,3 +54,5 @@ class CushionWorker {
     this.messageEvents = utils.removeEventFromArr(this.messageEvents, id);
   }
 }
+
+export default CushionWorker;

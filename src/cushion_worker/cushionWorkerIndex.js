@@ -1,4 +1,4 @@
-import CushionWorker from 'cushionWorker';
+import CushionWorker from './cushionWorker';
 import { getFetchOpts } from '../utils/fetchUtils';
 import * as urls from '../utils/urls';
 import MetaDB from '../metaDB';
