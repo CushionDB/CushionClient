@@ -11,24 +11,27 @@ class DatabaseAuth {
     this.couchBaseURL = couchBaseURL;
     this.ready = this.metaDB.ready;
 
-    this.metaDB.ready.then(() => {	
-      this.localDB = new PouchDB(this.metaDB.localDB());
+    this.metaDB.ready
+
+    .then(() => {	
+      this.localDB = new PouchDB(this.metaDB.localDBName());
 
       if (this.metaDB.remoteDBName()) {
         this.remoteDB = new PouchDB(this.metaDB.remoteDBName());
-
-        this.bindToLocalDBChange(function() {
-        	console.log('change happend');
-          this.isSignedIn().then(res => {
-            console.log(res);
-            if (res) {
-              console.log('hello from signed in')
-              scheduleSyncPush();
-            }
-          })
-        }.bind(this));
       }
+
+      this.bindToLocalDBChange(() => {
+        console.log('SCHEDULING BOUND TO LOCAL CHANGE');
+        this.isSignedIn().then(res => {
+          if (res) {
+            console.log('GETTING THROUGH SIGN IN');
+            scheduleSyncPush();
+          }
+        })
+      });
     })
+
+    .catch(err => Promise.reject(err));
   }
 
   bindToLocalDBChange(callback) {
@@ -43,27 +46,21 @@ class DatabaseAuth {
 
     return this.getSession(this.remoteDB)
 
-      .then(res => !!res)
-
-      .catch(err => {
-        throw new Error(err);
-      });
+    .then(res => !!res)
+    .catch(err => Promise.reject(err));
   }
 
   getSession(remoteDB) {
-    if (!this.remoteDB) Promise.reject('User is not signed in');
+    return this.remoteDB.getSession()
 
-    return this.remoteDB.getSession().then(res => {
-      if (!res.userCtx.name) {
-        return null;
-      }
+    .then(res => {
+      if (!res.userCtx.name) return null;
 
       return res;
-    }).catch(err => {
-      console.log(err);
-    });
+    })
   }
 
+// Keep ? 
   getPassword(remoteDB) {
     if (!this.remoteDB) return undefined;
 
@@ -71,82 +68,71 @@ class DatabaseAuth {
   }
 
   signIn(username, password) {
-    const couchUserDBName = DatabaseAuth.createCouchUserDBName(this.couchBaseURL, username)
-    const fakeRemoteDB = this.createRemoteCouchDBHandle(couchUserDBName, username, password)
+    const couchUserDBName = DatabaseAuth.createCouchUserDBName(this.couchBaseURL, username);
+    const fakeRemoteDB = this.createRemoteCouchDBHandle(couchUserDBName, username, password);
 
     return fakeRemoteDB.logIn(username, password)
 
-      .then(res => {
-        return this.metaDB.start(couchUserDBName, username)
+    .then(res => this.metaDB.start(couchUserDBName, username))
+    .then(res => {
+      this.remoteDB = this.createRemoteCouchDBHandle(couchUserDBName);
+      return Promise.resolve({ status: 'success' });
+    })
 
-          .then(res => {
-            this.remoteDB = this.createRemoteCouchDBHandle(couchUserDBName);
-            return true;
-          })
-      })
-
-      .catch(err => {
-        if (err.name === 'unauthorized' || err.name === 'forbidden') {
-          throw new Error('Username or password incorrect');
-        }
-
-        throw new Error(err);
-      });
-  }
-
-  signOut() {
-    // return this.isSignedIn()
-
-    //   .then(res => {
-    //     if (!res) throw new Error('User is not signed in');
-
-        return this.remoteDB.logOut()
-
-          .then(res => {
-            if (!res.ok) throw new Error('Sign out failed');
-
-            this.remoteDB = null;
-            return this.metaDB.destroy()
-
-              .then(_ => {
-                return true;
-              })
-          })
-      // })
-
-      // .catch(err => {
-      //   throw new Error(err);
-      // })
-  }
-
-  createRemoteCouchDBHandle(remoteName, username, password) {
-    return new PouchDB(remoteName, {skip_setup: true, 
-      auth: {
-        username, 
-        password
+    .catch(err => {
+      if (err.name === 'unauthorized' || err.name === 'forbidden') {
+        return Promise.reject('Username or password incorrect');
       }
+
+      return Promise.reject(err);
     });
   }
 
+  signOut() {
+    return this.remoteDB.logOut()
+
+    .then(res => {
+      if (!res.ok) return Promise.reject('Sign out failed');
+
+      this.remoteDB = null;
+      return this.metaDB.destroy();
+    })
+
+    .catch(err => Promise.reject(err));
+  }
+
+  createRemoteCouchDBHandle(remoteName, username, password) {
+    return new PouchDB(
+      remoteName, 
+      {
+        skip_setup: true, 
+        auth: {
+          username, 
+          password
+        }
+      }
+    );
+  }
+
   changePassword(username, newPassword){
-    this.signOut()
-      .then(r => this.signIn(username, newPassword))
+    return this.signOut()
+    
+    .then(_ => this.signIn(username, newPassword));
   }
 
   destroyUser(username) {
     return this.remoteDB.deleteUser(username)
 
-      .then(res => {
-        this.remoteDB = null;
-        return this.localDB.destroy()
-      })
+    .then(res => {
+      this.remoteDB = null;
+      return this.localDB.destroy();
+    })
 
-      .then(res => {
-        return this.metaDB.destroy();
-      })
+    .then(res => {
+      return this.metaDB.destroy();
+    })
 
-      .catch( err => console.log(err) );
-
+    .catch(err => Promise.reject(err));
   }
 
   static createCouchUserDBName(couchBaseURL, username) {
@@ -154,7 +140,6 @@ class DatabaseAuth {
 
     return `${couchBaseURL}/cushion_${hexUsername}`;
   }
-
 }
 
 export default DatabaseAuth;
