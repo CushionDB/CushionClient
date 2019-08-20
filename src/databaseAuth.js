@@ -17,11 +17,16 @@ class DatabaseAuth {
       if (this.metaDB.remoteDB()) {
         this.remoteDB = new PouchDB(this.metaDB.remoteDB());
 
-        this.bindToLocalDBChange(() => {
+        this.bindToLocalDBChange(function() {
+        	console.log('change happend');
           this.isSignedIn().then(res => {
-            if (res) scheduleSyncPush();
+            console.log(res);
+            if (res) {
+              console.log('hello from signed in')
+              scheduleSyncPush();
+            }
           })
-        });
+        }.bind(this));
       }
     })
   }

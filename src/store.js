@@ -6,15 +6,8 @@ import * as dbUtils from './utils/dbUtils';
 import { scheduleSyncPush, scheduleSyncPull } from './utils/swUtils';
 import urlB64ToUint8Array from './utils/64to8.js';
 
-// private store properties
 let listeners = [];
-// let metaDB;
-// let dbAuth.localDB;
 let dbAuth;
-
-// const startContReplicationToRemoteDB = (localDB) => {
-//   dbUtils.bindToChange(localDB, scheduleSyncPush);
-// }
 
 const notifyListeners = () => {
   listeners.forEach(l => l()); 
@@ -23,21 +16,8 @@ const notifyListeners = () => {
 class Store {
   constructor(dataAuth) {
     dbAuth = dataAuth;
-    // metaDB = metaDB;
-    // localDB = new PouchDB(metaDB.localDB());
     dbAuth.bindToLocalDBChange(notifyListeners);
-    // dbUtils.bindToChange(localDB, notifyListeners);
-
-    // if (metaDB.remoteDB()) {
-    //   startContReplicationToRemoteDB(localDB);
-    // }
-    // this.bindToLocalDBChange(this.notifyListeners);
   }
-
-  // userSignedIn() {
-  //   scheduleSyncPull();
-  //   startContReplicationToRemoteDB(localDB);
-  // }
 
   subscribe(listener) {
     listeners = [
@@ -52,79 +32,97 @@ class Store {
 
   set(document) {
     return dbAuth.localDB.post(document)
-      .then(doc => doc.id)
-      .catch(e => console.log(e));
+    .then(doc => doc.id)
+    .catch(err => Promise.reject(err));
   }
 
   get(id) {
     return dbAuth.localDB.get(id)
-      .then(doc => {
-        const { _rev, ...docWithoutRev } = doc;
+    .then(doc => {
+      const { _rev, ...docWithoutRev } = doc;
 
-        return docWithoutRev;
-      }).catch(e => console.log(e));
+      return docWithoutRev;
+    })
+
+    .catch(err => Promise.reject(err));
   }
 
   getAll() {
     return dbAuth.localDB.allDocs({
       'include_docs': true,
-    }).then(docs => {
+    })
+
+    .then(docs => {
       return docs.rows.map(doc => {
-        const d = doc.doc;
-        delete d._rev;
-        return d;
+        const { _rev, ...rest } = doc.doc;
+        return rest;
       });
-    }).catch(e => e);
+    })
+
+    .catch(err => Promise.reject(err));
   }
 
   update(id, attrs) {
     return dbAuth.localDB.get(id)
-      .then(doc => {
-        return  dbAuth.localDB.put({
-          ...doc,
-          ...attrs
-        }).then(doc => doc.id)
-          .catch(e => console.log(e));
+    .then(doc => {
+      return  dbAuth.localDB.put({
+        ...doc,
+        ...attrs
       });
+    })
+    
+    .then(doc => doc.id)
+    .catch(err => Promise.reject(err));
   }
 
   delete(id) {
-    return dbAuth.localDB.get(id).then(doc => {
+    return dbAuth.localDB.get(id)
+    .then(doc => {
       doc._deleted = true;
 
-      return  dbAuth.localDB.put(doc)
-        .then(doc => doc.id)
-        .catch(e => console.log(e));
-    });
+      return dbAuth.localDB.put(doc)
+    })
+
+    .then(doc => doc.id)
+    .catch(err => Promise.reject(err));
   }
 
   deleteAll() {
-    return dbAuth.localDB.allDocs().then(docs => {
+    return dbAuth.localDB.allDocs()
+
+    .then(docs => {
       docs.rows.forEach(doc => doc._deleted = true);
-      return dbAuth.localDB.bulkDocs(docs.rows)
-    });
+
+      return dbAuth.localDB.bulkDocs(docs.rows);
+    })
+
+    .catch(err => Promise.reject(err));
   }
 
-  find(attribute, value){
+  find(attribute, value) {
     return dbAuth.localDB.createIndex({
-      index: {fields: [attribute]}
-    }).then( res => {
+      index: {
+        fields: [attribute]
+      }
+    })
+
+    .then(res => {
       return dbAuth.localDB.find({
         selector: {
           [attribute]: value
         }
-      }).then( r =>{
-        return r.docs;
-      }).catch( err => console.log(err) );
-    }).catch( err => console.log(err) );
+      });
+    })
+    
+    .then(r => r.docs)
+    .catch(err => Promise.reject(err));
   }
 
   destroy(){
     return dbAuth.localDB.destroy()
-      .then( resp => resp)
-      .catch( err => console.log(err) );
+    .then(res => res)
+    .catch(err => Promise.reject(err));
   }
 }
-
 
 export default Store;

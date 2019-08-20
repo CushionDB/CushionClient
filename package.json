@@ -1,7 +1,7 @@
 {
-  "name": "@cushiondb/cushiondb-client",
-  "version": "0.0.1",
-  "description": "",
+  "name": "cushiondb-client",
+  "version": "0.1.0",
+  "description": "CushionDB's database on the client side",
   "main": "./dist/main.js",
   "scripts": {
     "prod": "webpack --mode production",

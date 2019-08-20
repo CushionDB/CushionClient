@@ -45,7 +45,9 @@ export const subscribeDeviceToNotifications = () => {
 }
 
 export const scheduleSyncPush = () => {
+  console.log('scheduleSyncPush called');
   getServiceWorker().then(sw => {
+    console.log(sw);
     postMessage('SCHEDULE_PUSH', {}, sw);
   });
 }

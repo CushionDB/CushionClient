@@ -1,6 +1,6 @@
-if (process.env.NODE_ENV === 'production') {
-	importScripts('dist/cushionWorker');
-} else {
+try {
+	importScripts('node_modules/cushiondb-client/dist/cushionWorker.js');
+} catch {
 	importScripts('assets/cushionWorker.js');
 }
 

@@ -4,7 +4,10 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: '[name].js',
-    publicPath: '/assets'
+    publicPath: '/assets',
+    library: 'cushiondb-client',
+    libraryExport: 'default',
+    libraryTarget: 'umd'
   },
   entry: {
     main: './src/index.js',

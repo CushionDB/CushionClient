@@ -9,11 +9,15 @@ import { getConfigObj } from './utils/configUtils';
 const TESTING = process.env.NODE_ENV === 'testing';
 const CONFIG = getConfigObj();
 
+console.log(CONFIG);
+
 class Cushion {
   constructor() {
-  	if (!TESTING) registerServiceWorker(CONFIG.couchBaseURL);
+  	if (!TESTING) registerServiceWorker();
 
   	const dbAuth = new DatabaseAuth(CONFIG.couchBaseURL);
+
+  	this.ready = dbAuth.ready;
 
   	dbAuth.ready.then(() => {
   		// const dbAuth = new DatabaseAuth(metaDB, envVars.couchBaseURL);
@@ -21,6 +25,7 @@ class Cushion {
 			this.store = new Store(dbAuth);
 	    this.account = new Account(dbAuth);
   	});
+
   }
 };
 

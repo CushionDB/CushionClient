@@ -3,7 +3,8 @@ import path from 'path';
 import { getConfigObj } from '../utils/configUtils';
 
 const configObj = getConfigObj();
-const ROOT_DIR = configObj.appPushIcons ? path.dirname(require.main.filename) : '../../';
+const useIcons = configObj.appPushIcons
+const ROOT_DIR = path.dirname(require.main.filename);
 
 class CushionWorker {
   constructor() {
@@ -18,7 +19,9 @@ class CushionWorker {
   }
 
   pouchSync(fromDB, toDB) {
-    return new PouchDB(fromDB).replicate.to(toDB);
+    console.log('pouchsync Called');
+    console.log(fromDB, toDB);
+    return new PouchDB(fromDB).replicate.to(toDB).then(res => console.log(res)).catch(err => console.log(err));
   }
 
   pushEventTriggered(evt) {
@@ -96,17 +99,23 @@ class CushionWorker {
   }
 }
 
-let cushionWorker = new CushionWorker();
+global.cushionWorker = new CushionWorker();
 
 cushionWorker.addPushEvent('SYNC', (event) => {  
   const title = configObj.appname;
   const options = {
     body: "is updating in the background.",
-    icon: `${ROOT_DIR}\icons\logo-icon.png`,
     silent: true,
-    renotify: false,
-    badge: `${ROOT_DIR}\icons\logo-badge.png`
+    renotify: false
   };
+
+  if (useIcons) {
+    options = {
+      ...options,
+      icon: '.\icons\logo-icon.png',
+      badge: '.\icons\logo-badge.png'
+    }
+  }
 
   return cushionWorker.getMetaDB().then(doc => {
     let localDBName = doc.localDBName;
@@ -138,7 +147,7 @@ cushionWorker.addSyncEvent('REPLICATE_TO_SERVER', () => {
     const localDBName = doc.localDBName;
     const remoteDBAddress = doc.remoteDBAddress;
 
-    return cushionWorker.pouchSync(remoteDBAddress, localDBName)
+    return cushionWorker.pouchSync(localDBName, remoteDBAddress);
   })
 
   .then(() => {
