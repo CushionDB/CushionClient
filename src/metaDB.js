@@ -1,6 +1,6 @@
 import PouchDB from 'pouchdb';
 import { getFetchOpts } from './utils/fetchUtils';
-import * as utils from '/utils/metaDBUtils';
+import * as utils from './utils/metaDBUtils';
 import * as urls from './utils/urls';
 
 let metaDB;
