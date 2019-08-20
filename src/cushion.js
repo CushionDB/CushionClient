@@ -1,6 +1,5 @@
 import Store from './store';
 import Account from './account';
-// import MetaDB from './metaDB';
 import DatabaseAuth from './databaseAuth';
 
 import { registerServiceWorker } from './utils/swUtils';
@@ -14,18 +13,15 @@ console.log(CONFIG);
 class Cushion {
   constructor() {
   	if (!TESTING) registerServiceWorker();
-
+    
   	const dbAuth = new DatabaseAuth(CONFIG.couchBaseURL);
 
   	this.ready = dbAuth.ready;
 
   	dbAuth.ready.then(() => {
-  		// const dbAuth = new DatabaseAuth(metaDB, envVars.couchBaseURL);
-
 			this.store = new Store(dbAuth);
 	    this.account = new Account(dbAuth);
   	});
-
   }
 };
 
