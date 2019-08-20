@@ -31,5 +31,5 @@ export const triggerEvents = (arr, id, evt) => {
 }
 
 export const triggerUpdateUsersDevices = () => {
-	
+
 }

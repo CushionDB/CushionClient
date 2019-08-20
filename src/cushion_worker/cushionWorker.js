@@ -18,7 +18,7 @@ class CushionWorker {
     console.log('pushevent')
     const eventData = JSON.parse(evt.data.text());
 
-    return utils.triggerEvents(this.pushEvents, eventData.id, evt);
+    return utils.triggerEvents(this.pushEvents, eventData.action, evt);
   }
 
   messageEventTriggered(evt) {
@@ -46,7 +46,7 @@ class CushionWorker {
   removePushEvent(id) {
     this.pushEvents = utils.removeEventFromArr(this.pushEvents, id);
   }
-  
+
   removeSyncEvent(id) {
     this.syncEvents = utils.removeEventFromArr(this.syncEvents, id);
   }
