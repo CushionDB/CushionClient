@@ -14,8 +14,8 @@ class DatabaseAuth {
     this.metaDB.ready.then(() => {	
       this.localDB = new PouchDB(this.metaDB.localDB());
 
-      if (this.metaDB.remoteDB()) {
-        this.remoteDB = new PouchDB(this.metaDB.remoteDB());
+      if (this.metaDB.remoteDBName()) {
+        this.remoteDB = new PouchDB(this.metaDB.remoteDBName());
 
         this.bindToLocalDBChange(function() {
         	console.log('change happend');
@@ -77,7 +77,7 @@ class DatabaseAuth {
     return fakeRemoteDB.logIn(username, password)
 
       .then(res => {
-        return this.metaDB.startMetaDB(couchUserDBName, username)
+        return this.metaDB.start(couchUserDBName, username)
 
           .then(res => {
             this.remoteDB = this.createRemoteCouchDBHandle(couchUserDBName);

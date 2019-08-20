@@ -1,9 +1,8 @@
 import PouchDB from 'pouchdb';
 import { getFetchOpts } from './utils/fetchUtils';
+import * as utils from '/utils/metaDBUtils';
 import * as urls from './utils/urls';
 
-let remoteDB;
-let localDB;
 let metaDB;
 
 class MetaDB {
@@ -13,11 +12,11 @@ class MetaDB {
 		this.ready = this.assignRemoteAddress();
 	}
 
-	localDB() {
+	localDBName() {
  		return this.localDBName;
  	}
 
- 	remoteDB() {
+ 	remoteDBName() {
  		return this.remoteDBAddress;
  	}
 
@@ -27,31 +26,41 @@ class MetaDB {
 	}
 
 	assignRemoteAddress() {
-		return this.getMetaDB().then(dbDoc => {
+		return this.getMetaDB()
+
+		.then(dbDoc => {
       this.remoteDBAddress = dbDoc.remoteDBAddress; 
-		}).catch(_ => Promise.resolve(null));
+		})
+
+		.catch(_ => {
+			this.remoteDBAddress = null; 
+		});
 	}
 
- 	startMetaDB(remoteAddress, username) {
- 		return fetch(urls.isSubscribedToPush(username), getFetchOpts({
- 			method: 'GET'
-    })).then( res => res.json() )
-    .then(json => {
-			// console.log(json); 			
+ 	start(remoteDBAddress, username) {
+ 		return fetch(
+ 			urls.isSubscribedToPush(username),
+ 			getFetchOpts({
+ 				method: 'GET'
+  		})
+		)
 
-	    const cushionDBDoc = {
-	    	_id: 'cushionMeta',
-	    	localDBName: this.localDB(),
-	    	remoteDBAddress: remoteAddress,
-        username: username,
-	    	// MAKE DYNAMIC
-	    	subscribedToPush: json.subscribed 
-	  	};
+    .then(res => res.json())
+    .then(json => {
+
+    const cushionDBDoc = utils.getDefaultMetaDBDoc(
+    	this.localDBName(),
+    	remoteDBAddress,
+    	username,
+    	json.subscribed
+  	)
 
 	 		metaDB = new PouchDB('cushionMeta');
+
 	 		return metaDB.put(cushionDBDoc);
  		})
-		.catch(err => console.log(err));
+
+		.catch(err => Promise.reject(err));
  	}
 
  	destroy() {
