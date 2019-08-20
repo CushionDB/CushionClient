@@ -7,22 +7,22 @@ let metaDB;
 
 class MetaDB {
 	constructor() {
-		this.localDBName = 'cushionDB';
-		this.remoteDBAddress;
-		this.subscribedToPush;
+		this.localName = 'cushionDB';
+		this.remoteAddress;
+		this.pushSubscribed;
 		this.ready = this.assignMetaVars();
 	}
 
 	localDBName() {
- 		return this.localDBName;
+ 		return this.localName;
  	}
 
  	remoteDBName() {
- 		return this.remoteDBAddress;
+ 		return this.remoteAddress;
  	}
 
  	subscribedToPush() {
- 		return this.subscribedToPush;
+ 		return this.pushSubscribed;
  	}
 
 	getMetaDB() {
@@ -34,13 +34,15 @@ class MetaDB {
 		return this.getMetaDB()
 
 		.then(dbDoc => {
-      this.remoteDBAddress = dbDoc.remoteDBAddress; 
-      this.subscribedToPush = dbDoc.subscribedToPush;
+      this.remoteAddress = dbDoc.remoteDBAddress; 
+      this.pushSubscribed = dbDoc.subscribedToPush;
+      return Promise.resolve();
 		})
 
 		.catch(_ => {
-			this.remoteDBAddress = null; 
-			this.subscribedToPush = null;
+			this.remoteAddress = null; 
+			this.pushSubscribed = null;
+			return Promise.resolve();
 		});
 	}
 
@@ -55,12 +57,12 @@ class MetaDB {
     .then(res => res.json())
     .then(json => {
 
-    const cushionDBDoc = utils.getDefaultMetaDBDoc(
-    	this.localDBName(),
-    	remoteDBAddress,
-    	username,
-    	json.subscribed
-  	)
+	    const cushionDBDoc = utils.getDefaultMetaDBDoc(
+	    	this.localDBName(),
+	    	remoteDBAddress,
+	    	username,
+	    	json.subscribed
+	  	)
 
 	 		metaDB = new PouchDB('cushionMeta');
 

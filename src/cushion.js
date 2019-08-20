@@ -8,8 +8,6 @@ import { getConfigObj } from './utils/configUtils';
 const TESTING = process.env.NODE_ENV === 'testing';
 const CONFIG = getConfigObj();
 
-console.log(CONFIG);
-
 class Cushion {
   constructor() {
   	if (!TESTING) registerServiceWorker();

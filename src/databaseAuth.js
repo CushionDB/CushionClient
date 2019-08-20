@@ -18,13 +18,12 @@ class DatabaseAuth {
 
       if (this.metaDB.remoteDBName()) {
         this.remoteDB = new PouchDB(this.metaDB.remoteDBName());
+        scheduleSyncPull();
       }
 
       this.bindToLocalDBChange(() => {
-        console.log('SCHEDULING BOUND TO LOCAL CHANGE');
         this.isSignedIn().then(res => {
           if (res) {
-            console.log('GETTING THROUGH SIGN IN');
             scheduleSyncPush();
           }
         })
@@ -76,7 +75,9 @@ class DatabaseAuth {
     .then(res => this.metaDB.start(couchUserDBName, username))
     .then(res => {
       this.remoteDB = this.createRemoteCouchDBHandle(couchUserDBName);
-      return Promise.resolve({ status: 'success' });
+      scheduleSyncPull();
+      scheduleSyncPush();
+      return true;
     })
 
     .catch(err => {
@@ -88,16 +89,33 @@ class DatabaseAuth {
     });
   }
 
-  signOut() {
+  signOut(options) {
+    if (!this.remoteDB) return Promise.reject('No remote database to sign out with');
+
     return this.remoteDB.logOut()
 
     .then(res => {
       if (!res.ok) return Promise.reject('Sign out failed');
 
+      if (options.destroyLocal) {
+        return this.destroyLocal()
+        .then(() => {
+          this.localDB = new PouchDB(this.metaDB.localDBName());
+          this.remoteDB = null;
+          return this.metaDB.destroy();
+        });
+      }
+
       this.remoteDB = null;
       return this.metaDB.destroy();
     })
 
+    .catch(err => Promise.reject(err));
+  }
+
+  destroyLocal() {
+    return this.localDB.destroy()
+    .then(res => res)
     .catch(err => Promise.reject(err));
   }
 

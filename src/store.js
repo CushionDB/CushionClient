@@ -87,12 +87,20 @@ class Store {
   }
 
   deleteAll() {
-    return dbAuth.localDB.allDocs()
+    return dbAuth.localDB.allDocs({
+      include_docs: true
+    })
 
     .then(docs => {
-      docs.rows.forEach(doc => doc._deleted = true);
+      const deletedDocs = docs.rows.map(row => {
+        return {
+          _id: row.doc._id,
+          _rev: row.doc._rev,
+          _deleted: true
+        }
+      });
 
-      return dbAuth.localDB.bulkDocs(docs.rows);
+      return dbAuth.localDB.bulkDocs(deletedDocs);
     })
 
     .catch(err => Promise.reject(err));
@@ -117,9 +125,12 @@ class Store {
     .catch(err => Promise.reject(err));
   }
 
-  destroy(){
-    return dbAuth.localDB.destroy()
-    .then(res => res)
+  destroy() {
+    return dbAuth.destroyLocal()
+    .then(_ => {
+      return { status: 'success' };
+    })
+    
     .catch(err => Promise.reject(err));
   }
 }

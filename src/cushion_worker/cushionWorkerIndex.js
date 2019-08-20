@@ -1,7 +1,10 @@
 import CushionWorker from './cushionWorker';
+import path from 'path';
 import { getFetchOpts } from '../utils/fetchUtils';
+import { getConfigObj } from '../utils/configUtils';
 import * as urls from '../utils/urls';
 import MetaDB from '../metaDB';
+import * as utils from '../utils/cushionWorkerUtils';
 
 const configObj = getConfigObj();
 const useIcons = configObj.appPushIcons;
@@ -77,7 +80,7 @@ cushionWorker.addSyncEvent('REPLICATE_FROM_SERVER', () => {
 	const metaDB = new MetaDB();
 
 	return metaDB.ready.then(_ => {
-		if (!metaDB.remoteDBAddress()) return;
+		if (!metaDB.remoteDBName()) return;
 
 		return utils.pouchSync(metaDB.remoteDBName(), metaDB.localDBName());
 	})

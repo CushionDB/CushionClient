@@ -1,3 +1,5 @@
+import PouchDB from 'pouchdb';
+
 export const pouchSync = (fromDB, toDB) => {
   return new PouchDB(fromDB).replicate.to(toDB);
 }
@@ -19,12 +21,11 @@ export const removeEventFromArr = (arr, id) => {
 
 export const triggerEvents = (arr, id, evt) => {
   return new Promise((res, rej) => {
-    arr.forEach(e => {
-      if (id === e.id) {
-        res(e.evt(evt));
-      }
-    });
+    const event = arr.find(e => e.id === id).evt;
 
+    event(evt);
+
+    res(true);
     rej('Event with this ID not found');
   });
 }

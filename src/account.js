@@ -64,18 +64,23 @@ class Account {
 
     return dbAuth.signIn(username, password)
 
-    .then(res => { status: 'success' })
+    .then(res => { 
+      return { status: 'success' }
+    })
+
     .catch(err => Promise.reject(err));
   }
 
-  signOut() {
-    dbAuth.signOut()
-    .then(res => { status: 'success' })
+  signOut(options) {
+    return dbAuth.signOut(options)
+    .then(res => {
+      return { status: 'success' }
+    })
     .catch(err => Promise.reject(err));
   }
 
   getUserDoc(username) {
-    this.isSignedIn()
+    return this.isSignedIn()
 
     .then(res => {
       if (!res) return Promise.reject('User is not signed in');
@@ -111,7 +116,7 @@ class Account {
   }
 
   destroy(username) {
-    this.isSignedIn()
+    return this.isSignedIn()
 
     .then(res => {
       if (!res) return Promise.reject('User is not signed in');
@@ -148,7 +153,7 @@ class Account {
   subscribeToNotifications() {
     let subscription;
 
-    this.isSignedIn()
+    return this.isSignedIn()
 
     .then(res => {
       if (!res) return Promise.reject('User is not signed in');

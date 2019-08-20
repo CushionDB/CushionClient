@@ -13,5 +13,6 @@ self.addEventListener('message', evt => {
 });
 
 self.addEventListener('push', evt => {
+	console.log('pusheventTriggered');
   evt.waitUntil(cushionWorker.pushEventTriggered(evt));
 });
