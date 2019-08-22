@@ -15,7 +15,6 @@ class CushionWorker {
   }
 
   pushEventTriggered(evt) {
-    console.log('pushevent')
     const eventData = JSON.parse(evt.data.text());
 
     return utils.triggerEvents(this.pushEvents, eventData.action, evt);

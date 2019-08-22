@@ -48,6 +48,7 @@ class MetaDB {
 		.catch(_ => {
 			this.remoteAddress = null; 
 			this.pushSubscribed = null;
+      this.username = null;
 			return Promise.resolve();
 		});
 	}

@@ -1,13 +1,15 @@
 const path = require('path');
 const rootDir = path.dirname(require.main.filename);
-let configObj;
-
-try {
-	configObj = require (rootDir + 'cushionConfig.json');
-} catch {	
- configObj = require('../../.defaultCushionConfig.json');
-}
+let configObj = require('../../.defaultCushionConfig.json');
 
 export const getConfigObj = () => {
-	return configObj;
+  let userConfig;
+
+  try {
+    userConfig = require (rootDir + 'cushionConfig.json');
+  } catch {
+    userConfig = undefined;
+  }
+
+  return userConfig ? {...configObj, ...userConfig} : configObj;
 }

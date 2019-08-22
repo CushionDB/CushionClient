@@ -59,7 +59,6 @@ class DatabaseAuth {
     })
   }
 
-// Keep ? 
   getPassword(remoteDB) {
     if (!this.remoteDB) return undefined;
 
@@ -74,7 +73,7 @@ class DatabaseAuth {
 
     .then(res => this.metaDB.start(couchUserDBName, username))
     .then(res => {
-      this.remoteDB = this.createRemoteCouchDBHandle(couchUserDBName);
+      this.remoteDB = fakeRemoteDB;
       scheduleSyncPull();
       scheduleSyncPush();
       return true;
