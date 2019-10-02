@@ -77,4 +77,4 @@ cushion.store.set({
 
 [Jaron Truman]() *Software Engineer* Las Vegas, NV
 
-[Daniel Rote](drote.github.io) *Software Engineer* Seattle, WA
+[Daniel Rote](https://drote.github.io) *Software Engineer* Seattle, WA
