@@ -1,3 +1,7 @@
+import PouchDB from 'pouchdb';
+import path from 'path';
+import * as utils from '../utils/cushionWorkerUtils';
+
 class CushionWorker {
   constructor() {
     this.pushEvents = [];
@@ -10,123 +14,45 @@ class CushionWorker {
     return cushionMeta.get('cushionMeta');
   }
 
-  pouchSync(fromDB, toDB) {
-    return new PouchDB(fromDB).replicate.to(toDB);
-  }
-
   pushEventTriggered(evt) {
     const eventData = JSON.parse(evt.data.text());
 
-    return this.triggerEvents(this.pushEvents, eventData.id, evt);
+    return utils.triggerEvents(this.pushEvents, eventData.action, evt);
   }
 
   messageEventTriggered(evt) {
     const eventData = evt.data;
 
-    return this.triggerEvents(this.messageEvents, eventData.id, evt);
+    return utils.triggerEvents(this.messageEvents, eventData.id, evt);
   }
 
   syncEventTriggered(evt) {
-    return this.triggerEvents(this.syncEvents, evt.tag, evt);
+    return utils.triggerEvents(this.syncEvents, evt.tag, evt);
   }
 
   addPushEvent(id, evt) {
-    this.addEvent(this.pushEvents, id, evt);
+    this.pushEvents = utils.addEventToArr(this.pushEvents, id, evt);
   }
 
   addMessageEvent(id, evt) {
-    this.addEvent(this.messageEvents, id, evt);
+    this.messageEvents = utils.addEventToArr(this.messageEvents, id, evt);
   }
 
   addSyncEvent(id, evt) {
-    this.addEvent(this.syncEvents, id, evt);
+    this.syncEvents = utils.addEventToArr(this.syncEvents, id, evt);
   }
 
   removePushEvent(id) {
-    const oldLength = this.pushEvents.length;
-    this.pushEvents = this.pushEvents.filter(e => !e.id === id);
-
-    if (oldLength === this.pushEvents.length) throw new Error('Push event with this ID not found');
+    this.pushEvents = utils.removeEventFromArr(this.pushEvents, id);
   }
 
-  // ADD TO UTILS \/
-  triggerEvents(arr, id, evt) {
-    return new Promise((res, rej) => {
-      arr.forEach(e => {
-        if (id === e.id) {
-          res(e.evt(evt));
-        }
-      });
-
-      rej('Event with this ID not found');
-    });
+  removeSyncEvent(id) {
+    this.syncEvents = utils.removeEventFromArr(this.syncEvents, id);
   }
 
-  addEvent(arr, id, evt) {
-    if (arr.some(e => e.id === id)) throw new Error('Event ID taken');
-
-    arr.push(
-      {
-        id,
-        evt
-      }
-    );
+  removeMessageEvent(id) {
+    this.messageEvents = utils.removeEventFromArr(this.messageEvents, id);
   }
 }
 
-let cushionWorker = new CushionWorker();
-
-cushionWorker.addPushEvent('SYNC', (event) => {  
-  const title = 'cushionJS';
-  const options = {
-    body: 'Your data has been synced!',
-    icon: 'images/icon.png',
-    badge: 'images/badge.png'
-  };
-
-  return cushionWorker.getMetaDB().then(doc => {
-    let localDBName = doc.cushionLocalDBName;
-    let remoteDBAddress = doc.cushionRemoteDBAddress;
-
-    return Promise.all([
-      cushionWorker.pouchSync(remoteDBAddress, localDBName),
-      self.registration.showNotification(title, options)
-    ]);
-  })
-});
-
-cushionWorker.addMessageEvent('SCHEDULE_PUSH', () => {
-  self.registration.sync.register('REPLICATE_TO_SERVER');
-  return Promise.resolve();
-});
-
-cushionWorker.addMessageEvent('SCHEDULE_PULL', () => {  
-  self.registration.sync.register('REPLICATE_FROM_SERVER');
-  return Promise.resolve();
-});
-
-cushionWorker.addSyncEvent('REPLICATE_TO_SERVER', () => {
-  return cushionWorker.getMetaDB()
-
-  .then(doc => {
-    const localDBName = doc.cushionLocalDBName;
-    const remoteDBAddress = doc.cushionRemoteDBAddress;
-
-    return cushionWorker.pouchSync(remoteDBAddress, localDBName);
-  })
-
-  .catch(err => console.log(err))
-});
-
-cushionWorker.addSyncEvent('REPLICATE_FROM_SERVER', () => {
-  return cushionWorker.getMetaDB()
-
-  .then(doc => {
-    const localDBName = doc.cushionLocalDBName;
-    const remoteDBAddress = doc.cushionRemoteDBAddress;
-
-    return cushionWorker.pouchSync(localDBName, remoteDBAddress);
-  })
-
-  .catch(err => console.log(err));
-});
+export default CushionWorker;

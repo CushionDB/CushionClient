@@ -1,33 +1,37 @@
 {
-  "name": "cushion",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.html",
+  "name": "cushiondb-client",
+  "version": "0.1.2",
+  "description": "CushionDB's database on the client side",
+  "main": "./dist/main.js",
   "scripts": {
     "prod": "webpack --mode production",
     "dev": "webpack-dev-server --mode development --open",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack --config ./webpack.config.js --mode=production",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/drote/cushion.git"
+    "url": "git+https://github.com/CushionDB/CushionClient.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/drote/cushion/issues"
+    "url": "https://github.com/CushionDB/issues"
   },
   "homepage": "https://github.com/drote/cushion#readme",
   "devDependencies": {
     "@babel/core": "^7.5.5",
     "@babel/preset-env": "^7.5.5",
     "babel-loader": "^8.0.6",
+    "jes": "^0.6.1",
+    "jest": "^24.8.0",
     "webpack": "^4.36.1",
     "webpack-cli": "^3.3.6",
     "webpack-dev-server": "^3.7.2"
   },
   "dependencies": {
+    "fs": "0.0.1-security",
     "pouchdb": "^7.1.1",
     "pouchdb-authentication": "^1.1.3",
     "pouchdb-find": "^7.1.1",

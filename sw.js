@@ -1,5 +1,8 @@
-importScripts('src/cushion_worker/pouchdb.js');
-importScripts('src/cushion_worker/cushionWorker.js');
+try {
+	importScripts('node_modules/cushiondb-client/dist/cushionWorker.js');
+} catch {
+	importScripts('assets/cushionWorker.js');
+}
 
 self.addEventListener('sync', evt => {
   evt.waitUntil(cushionWorker.syncEventTriggered(evt));
@@ -10,5 +13,6 @@ self.addEventListener('message', evt => {
 });
 
 self.addEventListener('push', evt => {
+	console.log('pusheventTriggered');
   evt.waitUntil(cushionWorker.pushEventTriggered(evt));
 });

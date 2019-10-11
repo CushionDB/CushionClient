@@ -1,38 +1,26 @@
 import Store from './store';
 import Account from './account';
+import DatabaseAuth from './databaseAuth';
+
+import { registerServiceWorker } from './utils/swUtils';
+import { getConfigObj } from './utils/configUtils';
+
+const TESTING = process.env.NODE_ENV === 'testing';
+const CONFIG = getConfigObj();
 
 class Cushion {
   constructor() {
-    this.store = new Store();
-    this.account = new Account(this.store);
+  	if (!TESTING) registerServiceWorker();
+    
+  	const dbAuth = new DatabaseAuth(CONFIG.couchBaseURL);
+
+  	this.ready = dbAuth.ready;
+
+  	dbAuth.ready.then(() => {
+			this.store = new Store(dbAuth);
+	    this.account = new Account(dbAuth);
+  	});
   }
 };
 
 export default Cushion;
-
-const cushion = new Cushion();
-
-// cushion.account.signUp({
-//   username: 'Foo',
-//   password: 'secret'
-// }).then( response => {
-//   console.log(cushion.account.getUserName())
-// }).catch(err => {
-//   console.log(err)
-// });
-
-// cushion.store.set({
-//   todo: 'Task 1',
-//   completed: false
-// }).then( docId => {
-//   console.log(docId)
-// }).catch( err => {
-//   console.log(err);
-// });
-
-// cushion.store.getAll()
-//   .then( docs => {
-//     docs.forEach( doc => console.log(doc) ) ;
-// }).catch(err => {
-//   console.log(err);
-// });

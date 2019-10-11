@@ -1,3 +1,5 @@
 import Cushion from './cushion';
 
-global.cushion = new Cushion();
+export default Cushion;
+
+// global.cushion = new Cushion();
