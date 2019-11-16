@@ -69,8 +69,6 @@ cushion.store.set({
 });
 ```
 
-[Full API Documentation]()
-
 # The Team
 
 [Avshar Kirksall](https://avshrk.github.io/
