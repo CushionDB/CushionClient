@@ -28,9 +28,9 @@ mv node_modules/cushiondb-client/sw.js .
 
 ## Setup
 
-CushionClient is an npm package. It can either be added to the projects node modules by running `npm i cushion-client` from within your project's root directory, or `cushion-client` can simply be added as a dependency inside your project's `package.json` file.
+CushionClient is an npm package. It can either be added to the projects node modules by running `npm i cushion-client` from within your project's root directory, or `cushiondb-client` can simply be added as a dependency inside your project's `package.json` file.
 
- Once CushionClient has been added as a dependency, changes can be made to the `.couchConfig.json` file within the `node_modules/cushion-client` directory. This is only necessary if the default server configurations are changed while setting up the CushionDB backend.
+ Once CushionClient has been added as a dependency, changes can be made to the `.couchConfig.json` file within the `node_modules/cushiondb-client` directory. This is only necessary if the default server configurations are changed while setting up the CushionDB backend.
 
 <p align="center"><img src="https://cushiondb.github.io/img/client-config.png"></p>
 
@@ -43,9 +43,9 @@ Finally, a Service Worker file (`sw.js`) is needed in the project's root directo
 ## Sample Usage
 
 ```js
-import Cushion from 'cushiondb';
+import Cushion from 'cushiondb-client';
 // or
-const Cushion = require('cushiondb');
+const Cushion = require('cushiondb-client');
 ```
 
 ```js
