@@ -23,7 +23,7 @@ CushionClient is designed to work with [CushionSever](https://github.com/Cushion
 
 ```
 npm i cushiondb-client
-mv node_modules/cushion-client/sw.js .
+mv node_modules/cushiondb-client/sw.js .
 ```
 
 ## Setup
